@@ -11,11 +11,9 @@ I'm **Egloris**, founder of **Loris Games**, an indie studio crafting warm, pers
 ---
 
 
-## 💻 My Tech & Learning Journey
+## 💻 Languages I can code with
 
-I'm proficient in **Lua** (from my Roblox days) and have experience with **HTML, CSS, JavaScript** and some **C#**.
-
-Right now, I'm diving deep into the **Roblox TypeScript stack with Flamework and React**. I'm mastering this ecosystem as the future foundation for all my Roblox games.
+[![My Skills](https://skillicons.dev/icons?i=ts,cs,py,lua,)](https://skillicons.dev)
 
 ---
 
