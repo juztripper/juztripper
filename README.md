@@ -4,9 +4,9 @@ Welcome to my corner of the internet! I'm a game developer, passionate about cre
 
 ---
 
-## 🐾 About Me & Loris Games
+## 🐾 About Me
 
-I'm **Ripper**, founder of **Loris Games**, an indie studio crafting warm, personality-filled game experiences. My journey in game dev started at 9 on Roblox, hitting a peak of 7,000 players in one of my games! I'm a self-taught learner, always pushing to understand new concepts by rephrasing them in my own words.
+My journey in game dev started at 9 on Roblox, hitting a peak of 7,000 players in one of my games! I'm a self-taught learner, always pushing to understand new concepts by rephrasing them in my own words.
 
 ---
 
