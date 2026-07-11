@@ -14,11 +14,3 @@ My journey in game dev started at 9 on Roblox, hitting a peak of 7,000 players i
 ## 💻 Languages I can code with
 
 [![My Skills](https://skillicons.dev/icons?i=ts,cs,py,lua,)](https://skillicons.dev)
-
----
-
-## 📊 My Hackatime Stats
-
-Curious about what I've been coding? Here are my recent Hackatime stats!
-
-![Hackatime Stats](https://github-readme-stats.hackclub.dev/api/wakatime?username=14669&api_domain=hackatime.hackclub.com&&custom_title=Hackatime+Stats&layout=compact&cache_seconds=0&langs_count=8&theme=github_dark_dimmed)
