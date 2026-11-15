@@ -47,44 +47,15 @@ PIP = {"g": "#4daf4a", "d": "#3a8f3d", "w": "#fff5e0", "k": "#33312f", "l": "#8a
 out = {"palettes": {}}
 box = load("pip-awake.png").getbbox()
 for n in ("awake", "asleep", "looking", "pleased"):
-    out[f"pip-{n}"] = sprite(load(f"pip-{n}.png").crop(box), 24, PIP, crop=False)
+    out[f"pip-{n}"] = sprite(load(f"pip-{n}.png").crop(box), 40, PIP, crop=False)
 out["palettes"]["pip"] = PIP
 out["strut"] = sprite(load("strut.png"), 74, {"o": "#1a1714"})
-out["pixelforge"] = sprite(load("pixelforge.png"), 30, {"c": "#00ffff", "a": "#5cc8ff", "b": "#0a84ff", "d": "#0050e6"})
-out["lucky"] = sprite(load("lucky.jpg", key_bg=True), 26, {"m": "#c9e8e2", "p": "#f6c9c9", "k": "#7f8a84", "g": "#c9d6bd", "w": "#ffffff"})
+out["pixelforge"] = sprite(load("pixelforge.png"), 32, {"c": "#00ffff", "a": "#5cc8ff", "b": "#0a84ff", "d": "#0050e6"})
+out["lucky"] = sprite(load("lucky.jpg", key_bg=True), 36, {"m": "#c9e8e2", "p": "#f6c9c9", "k": "#7f8a84", "g": "#c9d6bd", "w": "#ffffff"})
 al = load("al.png")
 al = al.crop((0, 0, int(al.height * 1.78), al.height))
-out["al"] = sprite(al, 28, {"w": "#f1fef3", "g": "#2fc062"})
+out["al"] = sprite(al, 40, {"w": "#f1fef3", "g": "#2fc062"})
 
-
-def garment(name, w, colors=4):
-    """real pieces from strut's demo closet: flood the studio backdrop away, then quantize."""
-    from PIL import ImageDraw
-    img = Image.open(SRC / f"strut-{name}.png").convert("RGB")
-    key = (255, 0, 255)
-    for xy in ((0, 0), (img.width - 1, 0), (0, img.height - 1), (img.width - 1, img.height - 1)):
-        ImageDraw.floodfill(img, xy, key, thresh=14)
-    rgba = img.convert("RGBA")
-    px = rgba.load()
-    for y in range(img.height):
-        for x in range(img.width):
-            if px[x, y][:3] == key:
-                px[x, y] = (0, 0, 0, 0)
-    rgba = rgba.crop(rgba.getbbox())
-    h = max(1, round(w * rgba.height / rgba.width))
-    small = rgba.resize((w, h), Image.BOX)
-    q = small.convert("RGB").quantize(colors, method=Image.MEDIANCUT)
-    pal = q.getpalette()
-    letters = "abcdefghijklmnop"
-    rows = []
-    for y in range(h):
-        rows.append("".join(letters[q.getpixel((x, y))] if small.getpixel((x, y))[3] > 140 else "." for x in range(w)))
-    out["palettes"][name] = {letters[i]: "#%02x%02x%02x" % tuple(pal[i * 3:i * 3 + 3]) for i in range(colors)}
-    out[name] = rows
-
-
-for n, w in (("polo_rust", 10), ("sweater_cream", 10), ("jacket_denim", 10), ("jeans_mid", 8), ("chinos_beige", 8), ("trousers_charcoal", 8)):
-    garment(n, w)
 (Path(__file__).resolve().parent / "sprites.json").write_text(json.dumps(out))
 for k, v in out.items():
     if k != "palettes":

@@ -1,29 +1,52 @@
 // pixel art for the profile. run: python3 art/sprites.py && node art/build.mjs
-// one rule above all: every pixel is the same size. the whole page is drawn on a grid of
-// 4px cells (art, sprites and both fonts), nothing is rotated, curved or drawn between cells.
-// theme: a desk at night. ripper's games tokens (charcoal, cream, one opal accent), and each
-// project keeps its own brand colours. sprites come from the real logos (art/sprites.py).
+// theme: a maker's desk at night. ripper's games tokens (charcoal, cream, one opal accent),
+// and every project keeps its own brand colours. sprites come from the real logos (art/sprites.py).
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { svg, bitmap, textGlyphs, textWidth, rng, r2 } from './lib.mjs';
+import { svg, bitmap, textAt, textGlyphs, textWidth, rng, r2 } from './lib.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SP = JSON.parse(readFileSync(join(here, 'sprites.json'), 'utf8'));
-const U = 4;
 
 const K = {
   ground: '#0d0d0c', deep: '#070706', surface: '#151513', raised: '#1c1c19',
   ink: '#ede7e1', dim: '#a29c94', faint: '#8d867c', line: '#34332f', line2: '#4a4843',
-  opal: '#a9dde4', kraft: '#C9A06E', kraftLo: '#a8824f', seal: '#FAC834', green: '#4DAF4A',
+  opal: '#a9dde4', wood: '#3b3129', woodHi: '#5a4a3c', woodLo: '#221c17',
+  kraft: '#C9A06E', kraftLo: '#a8824f', seal: '#FAC834', green: '#4DAF4A',
 };
 const PIP = { g: '#4DAF4A', d: '#3a8f3d', w: '#FFF5E0', k: '#2a2826', l: '#8ad47f' };
 const REDUCE = '@media (prefers-reduced-motion:reduce){*{animation:none!important}}';
 
+const rect = (x, y, w, h, fill, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${extra}/>`;
+const cutPath = (w, h, k = 22) => `M${k} 0H${w}V${h - k}L${w - k} ${h}H0V${k}Z`;
+
+// pip, cycling through the kit's expressions
+function pip(x, y, s, prefix = 'p') {
+  const f = (n, cls) => `<g class="${prefix}${cls}">${bitmap(SP[`pip-${n}`], x, y, s, PIP)}</g>`;
+  const css = `
+  .${prefix}a{animation:${prefix}a 9s steps(1) infinite}.${prefix}l,.${prefix}s,.${prefix}p{opacity:0}
+  .${prefix}l{animation:${prefix}l 9s steps(1) infinite}.${prefix}s{animation:${prefix}s 9s steps(1) infinite}.${prefix}p{animation:${prefix}p 9s steps(1) infinite}
+  @keyframes ${prefix}a{0%{opacity:1}30%{opacity:0}46%{opacity:1}60%{opacity:0}62.5%{opacity:1}78%{opacity:0}96%{opacity:1}}
+  @keyframes ${prefix}l{0%{opacity:0}30%{opacity:1}46%{opacity:0}}
+  @keyframes ${prefix}s{0%{opacity:0}60%{opacity:1}62.5%{opacity:0}}
+  @keyframes ${prefix}p{0%{opacity:0}78%{opacity:1}96%{opacity:0}}`;
+  return { body: f('awake', 'a') + f('looking', 'l') + f('asleep', 's') + f('pleased', 'p'), css };
+}
+
+// a toy brick, side view, with studs
+function brick(x, y, studs, color, hi, lo, u = 4) {
+  const w = studs * 3 * u;
+  let s = rect(x, y, w, 4 * u, color) + rect(x, y, w, u, hi) + rect(x, y + 3 * u, w, u, lo);
+  for (let i = 0; i < studs; i++) s += rect(x + i * 3 * u + u / 2, y - u, 2 * u, u, hi);
+  return s;
+}
+
+// ------------------------------------------------------------------ hero --
+const U = 4;
 // everything below takes cell coordinates
 const R = (x, y, w, h, fill, extra = '') => `<rect x="${x * U}" y="${y * U}" width="${w * U}" height="${h * U}" fill="${fill}" ${extra}/>`;
 const B = (rows, x, y, colors) => bitmap(rows, x * U, y * U, U, colors);
-const cutPath = (w, h, k = 24) => `M${k} 0H${w}V${h - k}L${w - k} ${h}H0V${k}Z`;
 
 // the small font: 3x5 cells, one cell apart
 const F3 = {
@@ -53,38 +76,13 @@ function t3(str, x, y, fill, anchor = 'start') {
   }
   return `<path d="${d}" fill="${fill}"/>`;
 }
-// the big font: 5x7, k cells per font pixel
-const w7 = (str, k = 1) => textWidth(str, k);
-const t7 = (str, x, y, fill, k = 1) => `<path d="${textGlyphs(str, x * U, y * U, k * U).map((g) => g.d).join('')}" fill="${fill}"/>`;
-
-// pip, cycling through the kit's expressions
-function pip(x, y, prefix = 'p') {
-  const f = (n, cls) => `<g class="${prefix}${cls}">${B(SP[`pip-${n}`], x, y, PIP)}</g>`;
-  const css = `
-  .${prefix}a{animation:${prefix}a 9s steps(1) infinite}.${prefix}l,.${prefix}s,.${prefix}p{opacity:0}
-  .${prefix}l{animation:${prefix}l 9s steps(1) infinite}.${prefix}s{animation:${prefix}s 9s steps(1) infinite}.${prefix}p{animation:${prefix}p 9s steps(1) infinite}
-  @keyframes ${prefix}a{0%{opacity:1}30%{opacity:0}46%{opacity:1}60%{opacity:0}62.5%{opacity:1}78%{opacity:0}96%{opacity:1}}
-  @keyframes ${prefix}l{0%{opacity:0}30%{opacity:1}46%{opacity:0}}
-  @keyframes ${prefix}s{0%{opacity:0}60%{opacity:1}62.5%{opacity:0}}
-  @keyframes ${prefix}p{0%{opacity:0}78%{opacity:1}96%{opacity:0}}`;
-  return { body: f('awake', 'a') + f('looking', 'l') + f('asleep', 's') + f('pleased', 'p'), css };
-}
-
-// a toy brick, side view: 3 cells per stud, 4 tall
-function brick(x, y, studs, color, hi, lo) {
-  let s = R(x, y, studs * 3, 4, color) + R(x, y, studs * 3, 1, hi) + R(x, y + 3, studs * 3, 1, lo);
-  for (let i = 0; i < studs; i++) s += R(x + i * 3, y - 1, 2, 1, hi);
-  return s;
-}
-
 // a filled ellipse made of rows
 function blob(cx, cy, widths, fill, extra = '') {
   return widths.map((w, i) => R(cx - w / 2, cy - Math.floor(widths.length / 2) + i, w, 1, fill, extra)).join('');
 }
 
-// ------------------------------------------------------------------ hero --
 function hero() {
-  const CW = 220, CH = 116, W = CW * U, H = CH * U;
+  const CW = 220, CH = 110, W = CW * U, H = CH * U;
   const rand = rng(11);
   const C = { frame: '#4a4843', frameLo: '#34332f', sky: '#16151c', house: '#2b2931', roof: '#201f27', fence: '#241f24', curtain: '#2d372c', curtainLo: '#232b22', pc: '#cdbfa8', pcLo: '#a99b85', pcHi: '#e2d6c1', warm: '#fff1cf', wood: '#2a221d' };
   let b = R(0, 0, CW, CH, K.ground);
@@ -115,8 +113,8 @@ function hero() {
   b += B(['g.......', 'g..bbbb.', 'gg.wwwwr', 'ggbbbbbb', 'gkyk.kyk'], wx + 42, sy - 5, { g: '#3f7a45', b: '#7fa3cf', w: '#e9e2d8', r: '#d7553f', k: '#33312F', y: '#d9b44a' });
   for (const lx of [wx + 26, wx + 43]) b += R(lx, sy + 1, 6, 3, K.ink) + R(lx + 1, sy + 2, 3, 1, K.ground);
   // clock (the hand ticks round), frames
-  b += B(['.kkkkk.', 'kwwwwwk', 'kwwwwwk', 'kwwwwwk', 'kwwwwwk', 'kwwwwwk', '.kkkkk.'], 207, 13, { k: '#3b3129', w: K.ink }) + R(210, 16, 1, 1, K.ground);
-  [[0, -2], [1, -1], [2, 0], [1, 1], [0, 2], [-1, 1], [-2, 0], [-1, -1]].forEach(([hx, hy], i) => (b += R(210 + hx, 16 + hy, 1, 1, K.ground, `class="hand" style="animation-delay:${i}s"`)));
+  b += B(['..kkkkk..', '.kwwwwwk.', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', '.kwwwwwk.', '..kkkkk..'], 206, 11, { k: '#3b3129', w: K.ink }) + R(210, 15, 1, 1, K.ground) + R(211, 14, 1, 1, K.ground);
+  [[0, -3], [2, -2], [3, 0], [2, 2], [0, 3], [-2, 2], [-3, 0], [-2, -2]].forEach(([hx, hy], i) => (b += R(210 + hx, 15 + hy, 1, 1, '#d7553f', `class="hand" style="animation-delay:${i}s"`)));
   b += R(206, 26, 9, 11, K.line2) + R(207, 27, 7, 9, '#a9c3d6') + B(['.gg.', 'gggg', '.k..', 'bbbb'], 208, 29, { g: '#5d9a54', k: '#5a3b2a', b: '#3f6fa8' });
   b += R(206, 41, 9, 11, K.line2) + R(207, 42, 7, 9, K.ink) + B(['.r.', 'www', 'rrr', 'www', 'kkk'], 209, 44, { r: '#d7553f', w: '#fff', k: '#5a5a5a' });
 
@@ -146,20 +144,24 @@ function hero() {
   b += R(px - 2, dy + 3, 32, 4, '#d8cdb8') + R(px - 2, dy + 6, 32, 1, C.pcLo);
   for (let k = 0; k < 15; k++) b += R(px - 1 + k * 2, dy + 4, 1, 1, '#f1e9da');
   b += R(px + 33, dy + 4, 4, 2, C.pcHi);
-  // plant and pencils
-  b += B(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], 58, dy - 15, { g: '#2c4a31', d: '#1f3525' });
-  b += R(60, dy - 7, 5, 8, '#59606f') + R(60, dy - 7, 5, 1, '#6d7484') + R(61, dy - 9, 1, 2, '#d9b44a') + R(63, dy - 10, 1, 3, '#c8532f');
+  // mug with steam
+  b += R(60, dy - 6, 5, 7, '#d8cdbd') + R(60, dy - 6, 5, 1, '#57634f') + R(65, dy - 5, 2, 1, '#d8cdbd') + R(66, dy - 4, 1, 3, '#d8cdbd') + R(65, dy - 1, 2, 1, '#d8cdbd');
+  for (let i = 0; i < 2; i++) b += R(61 + i * 2, dy - 9, 1, 2, K.dim, `class="steam" style="animation-delay:${i * 1.2}s"`);
   // lamp, its beam and the pool of light on the desk
-  for (let i = 0; i < 20; i++) b += R(86 - Math.floor(i * 0.6), dy - 20 + i, 9 + Math.floor(i * 1.6), 1, C.warm, 'opacity=".05"');
-  b += `<g class="flick">` + blob(96, dy + 10, [20, 32, 40, 44, 44, 40, 32, 20], '#e2a44c', 'opacity=".3"') + blob(96, dy + 10, [12, 22, 28, 28, 22, 12], '#ffd88f', 'opacity=".35"') + '</g>';
-  for (let i = 0; i < 8; i++) b += R(84 + Math.floor(rand() * 28), dy - 14 + Math.floor(rand() * 14), 1, 1, C.warm, `opacity=".5" class="mote" style="animation-delay:${r2(-rand() * 8)}s;animation-duration:${r2(6 + rand() * 5)}s"`);
-  b += R(70, dy, 10, 1, '#d9d0c4') + R(74, dy - 9, 1, 9, '#d9d0c4') + R(73, dy - 18, 1, 9, '#d9d0c4') + R(72, dy - 24, 1, 6, '#d9d0c4') + R(72, dy - 25, 8, 1, '#d9d0c4') + R(80, dy - 26, 6, 1, '#d9d0c4');
-  b += B(['..sssss..', '.sssssss.', 'sssssssss', 'wwwwwwwww'], 85, dy - 25, { s: '#bfb5a8', w: C.warm });
-  // mug with steam, tray, the collection book
-  b += R(106, dy - 6, 5, 7, '#d8cdbd') + R(106, dy - 6, 5, 1, '#57634f') + R(111, dy - 5, 2, 1, '#d8cdbd') + R(112, dy - 4, 1, 3, '#d8cdbd') + R(111, dy - 1, 2, 1, '#d8cdbd');
-  for (let i = 0; i < 2; i++) b += R(107 + i * 2, dy - 9, 1, 2, K.dim, `class="steam" style="animation-delay:${i * 1.2}s"`);
-  b += R(108, dy + 8, 9, 1, '#6fa7a0') + R(108, dy + 9, 9, 1, '#4f817b');
-  b += R(126, dy + 2, 44, 18, '#efe9e0') + R(126, dy + 2, 44, 3, K.green) + R(130, dy + 3, 1, 1, '#fff') + R(133, dy + 3, 1, 1, '#fff') + t3('COLLECTION', 128, dy + 7, '#33312F') + t3('BOOK', 128, dy + 13, '#33312F');
+  const lx = 100;
+  for (let i = 0; i < 19; i++) b += R(lx + 16 - Math.floor(i * 0.5), dy - 19 + i, 9 + i, 1, C.warm, 'opacity=".05"');
+  b += `<g class="flick">` + blob(lx + 20, dy + 8, [20, 34, 44, 48, 48, 44, 34, 20], '#e2a44c', 'opacity=".3"') + blob(lx + 20, dy + 8, [12, 24, 30, 30, 24, 12], '#ffd88f', 'opacity=".35"') + '</g>';
+  for (let i = 0; i < 8; i++) b += R(lx + 8 + Math.floor(rand() * 26), dy - 14 + Math.floor(rand() * 12), 1, 1, C.warm, `opacity=".5" class="mote" style="animation-delay:${r2(-rand() * 8)}s;animation-duration:${r2(6 + rand() * 5)}s"`);
+  b += R(lx - 3, dy, 9, 1, '#d9d0c4') + R(lx + 1, dy - 23, 1, 23, '#d9d0c4') + R(lx + 1, dy - 24, 15, 1, '#d9d0c4');
+  b += B(['..sssss..', '.sssssss.', 'sssssssss', 'wwwwwwwww'], lx + 15, dy - 24, { s: '#bfb5a8', w: C.warm });
+  // a set being built under the lamp: one piece presses on, again and again
+  b += brick((lx + 14) * U, (dy - 4) * U, 4, '#5f8fc4', '#86addb', '#44709f') + brick((lx + 14) * U, (dy - 9) * U, 2, '#f3ece4', '#ffffff', '#cfc6bb');
+  b += `<g class="press">${brick((lx + 20) * U, (dy - 9) * U, 2, K.green, '#7fd07c', '#3a8f3d')}</g>`;
+  b += brick((lx + 32) * U, (dy - 4) * U, 2, '#d7553f', '#ea7a66', '#b03f2c');
+  // tray, plant and pencils
+  b += R(150, dy + 6, 9, 1, '#6fa7a0') + R(150, dy + 7, 9, 1, '#4f817b');
+  b += B(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], 188, dy - 15, { g: '#2c4a31', d: '#1f3525' });
+  b += R(190, dy - 7, 5, 8, '#59606f') + R(190, dy - 7, 5, 1, '#6d7484') + R(176, dy - 6, 4, 7, '#59606f') + R(177, dy - 8, 1, 2, '#d9b44a') + R(179, dy - 9, 1, 3, '#c8532f');
 
   const css = `
   .tw{animation:tw 3.4s steps(2) infinite}@keyframes tw{50%{opacity:.1}}
@@ -173,6 +175,7 @@ function hero() {
   .code{opacity:0;animation:code 9s steps(1) infinite}@keyframes code{0%{opacity:0}4%,90%{opacity:1}100%{opacity:0}}
   .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
   .steam{opacity:0;animation:steam 2.4s steps(4) infinite}@keyframes steam{0%{opacity:0}25%{opacity:.7}100%{opacity:0;transform:translateY(-${4 * U}px)}}
+  .press{animation:press 4s steps(1) infinite}@keyframes press{0%{transform:translateY(-${10 * U}px);opacity:0}10%{opacity:1}18%{transform:translateY(-${5 * U}px)}26%,100%{transform:translateY(0);opacity:1}}
   ${REDUCE}`;
   const defs = `<clipPath id="c"><path d="${cutPath(W, H)}"/></clipPath><clipPath id="win"><rect x="${wx * U}" y="${wy * U}" width="${ww * U}" height="${wh * U}"/></clipPath>`;
   return svg(W, H, `<g clip-path="url(#c)">${b}</g><path d="${cutPath(W - 1, H - 1)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`, {
@@ -182,112 +185,121 @@ function hero() {
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
-  const CW = 220, CH = 76;
+  const W = 880, H = 300;
   const C = { cream: '#FFF5E0', ink: '#33312F', muted: '#5F5A52' };
-  let b = R(0, 0, CW, CH, C.ink) + R(2, 2, CW - 4, CH - 4, C.cream);
-  // kraft stage: pip watches a set get built, one piece at a time
-  b += R(2, 2, 78, CH - 4, K.kraft) + R(80, 2, 1, CH - 4, C.ink) + R(2, 58, 78, 16, K.kraftLo) + R(2, 58, 78, 1, C.ink);
-  const p = pip(8, 42, 'q');
+  let b = rect(0, 0, W, H, C.cream) + rect(0, 0, W, H, 'none', `stroke="${C.ink}" stroke-width="8"`);
+  // kraft stage on the left: pip watching a set get built, one piece at a time
+  b += rect(4, 4, 330, H - 8, K.kraft) + rect(330, 4, 4, H - 8, C.ink) + rect(4, H - 60, 326, 56, K.kraftLo) + rect(4, H - 60, 326, 4, C.ink);
+  const p = pip(34, H - 60 - 29 * 4 + 4, 4, 'q');
   b += p.body;
-  const bx = 46, by = 54;
+  const bx = 212, by = H - 60 - 16;
   const tower = [
-    [0, 0, 4, '#5f8fc4', '#86addb', '#44709f'], [0, -5, 2, '#8b5a3c', '#a97552', '#6b4229'], [6, -5, 2, '#f3ece4', '#ffffff', '#cfc6bb'],
-    [0, -10, 4, '#5f8fc4', '#86addb', '#44709f'], [3, -15, 2, '#d7553f', '#ea7a66', '#b03f2c'],
+    [0, 0, 4, '#5f8fc4', '#86addb', '#44709f'], [0, -20, 2, '#8b5a3c', '#a97552', '#6b4229'], [24, -20, 2, '#f3ece4', '#ffffff', '#cfc6bb'],
+    [0, -40, 4, '#5f8fc4', '#86addb', '#44709f'], [12, -60, 2, '#d7553f', '#ea7a66', '#b03f2c'],
   ];
   tower.forEach(([dx, dy, n, c, hi, lo], i) => (b += `<g class="pc" style="animation-delay:${r2(0.6 + i * 1.3)}s">${brick(bx + dx, by + dy, n, c, hi, lo)}</g>`));
-  const x = 90;
-  b += R(CW - 2 - w3('MAIN PROJECT') - 4, 2, w3('MAIN PROJECT') + 4, 9, C.ink) + t3('MAIN PROJECT', CW - 4, 4, C.cream, 'end');
-  b += t7('BUILD A', x, 9, C.ink) + t7('BRICK SET', x, 19, C.ink, 2);
-  b += t3('OPEN THE BOX. TEAR THE BAGS.', x, 38, C.ink) + t3('PRESS EVERY PIECE ON.', x, 45, C.ink);
-  b += t3('A CALM ROBLOX GAME. NO TIMERS.', x, 53, C.muted);
+  b += rect(W - 150, 4, 146, 30, C.ink) + textAt('MAIN PROJECT', { x: W - 77, y: 12, s: 2, fill: C.cream, anchor: 'middle' });
+  const x = 366;
+  b += textAt('BUILD A', { x, y: 34, s: 3, fill: C.ink }) + textAt('BRICK SET', { x, y: 64, s: 6, fill: C.ink });
+  b += textAt('OPEN THE BOX. TEAR THE BAGS.', { x, y: 128, s: 2, fill: C.ink }) + textAt('PRESS EVERY PIECE ON.', { x, y: 150, s: 2, fill: C.ink });
+  b += textAt('A CALM ROBLOX GAME ABOUT BUILDING', { x, y: 184, s: 2, fill: C.muted }) + textAt('BOXED BRICK SETS BY HAND. NO TIMERS.', { x, y: 204, s: 2, fill: C.muted });
   let cx = x;
-  for (const [t, fill] of [['IN DEVELOPMENT', K.seal], ['ROBLOX', '#fff'], ['LUAU', '#fff']]) {
-    const w = w3(t) + 6;
-    b += R(cx + 1, 62 + 1, w, 9, C.ink) + R(cx, 62, w, 9, C.ink) + R(cx + 1, 63, w - 2, 7, fill) + t3(t, cx + 3, 64, C.ink);
-    cx += w + 3;
+  for (const [t, fill] of [['IN DEVELOPMENT', K.seal], ['ROBLOX', '#fff'], ['LUAU', '#fff'], ['BLENDER', '#fff']]) {
+    const w = textWidth(t, 2) + 20;
+    b += rect(cx + 4, 244 + 4, w, 28, C.ink) + rect(cx, 244, w, 28, fill, `stroke="${C.ink}" stroke-width="3"`) + textAt(t, { x: cx + 10, y: 251, s: 2, fill: C.ink });
+    cx += w + 14;
   }
   const css = `${p.css}
-  .pc{animation:pc 9s steps(1) infinite both}@keyframes pc{0%{transform:translateY(-${12 * U}px);opacity:0}2%{opacity:1}4%{transform:translateY(-${6 * U}px)}6%,88%{transform:translateY(0);opacity:1}94%,100%{opacity:0;transform:translateY(0)}}
+  .pc{animation:pc 9s cubic-bezier(.16,1,.3,1) infinite both}@keyframes pc{0%{transform:translateY(-70px);opacity:0}5%{opacity:1}9%,88%{transform:translateY(0);opacity:1}94%,100%{opacity:0;transform:translateY(0)}}
   ${REDUCE}`;
-  return svg(CW * U, CH * U, b, { title: 'build a brick set, my main project. a calm roblox game: open the box, tear the bags, press every piece on. in development.', style: css });
+  return svg(W, H, b, { title: 'build a brick set, my main project. a calm roblox game: open the box, tear the bags, press every piece on. in development.', style: css });
 }
 
 // ----------------------------------------------------------------- cards --
-function card({ title, tag, lines, art, accent, live }) {
-  const CW = 108, CH = 68, W = CW * U, H = CH * U, AW = 34;
-  let b = `<path d="${cutPath(W, H, 12)}" fill="${K.surface}"/>`;
-  b += `<g clip-path="url(#c)">${R(0, 0, AW, CH, K.ground)}${art.body}</g>` + `<rect x="${AW * U}" y="0" width="1" height="${H}" fill="${K.line}"/>`;
-  const x = AW + 4;
-  title.forEach((l, i) => (b += t7(l, x, 5 + i * 9, K.ink)));
-  const ty = 5 + title.length * 9 + 2;
-  lines.forEach((l, i) => (b += t3(l, x, ty + i * 7, K.dim)));
-  b += R(x, CH - 9, 2, 2, accent, live ? 'class="blink"' : '') + t3(tag, x + 4, CH - 10, accent);
+function card({ title, tag, lines, meta, art, accent, live }) {
+  const W = 434, H = 236;
+  let b = `<path d="${cutPath(W, H, 13)}" fill="${K.surface}"/>`;
+  b += `<g clip-path="url(#c)">${rect(0, 0, 150, H, K.ground)}${rect(150, 0, 1, H, K.line)}${art.body}</g>`;
+  const x = 172;
+  b += textAt(title, { x, y: 30, s: textWidth(title, 3) > W - x - 16 ? 2 : 3, fill: K.ink });
+  lines.forEach((l, i) => (b += textAt(l, { x, y: 72 + i * 22, s: 2, fill: K.dim })));
+  b += rect(x, H - 62, W - x - 22, 1, K.line);
+  b += rect(x, H - 42, 8, 8, accent, live ? 'class="blink"' : '') + textAt(tag, { x: x + 16, y: H - 45, s: 2, fill: accent });
+  b += textAt(meta, { x, y: H - 23, s: 1.5, fill: K.faint });
   const css = `.blink{animation:blink 1.4s steps(1) infinite}@keyframes blink{50%{opacity:.25}}${art.css || ''}${REDUCE}`;
-  return svg(W, H, b + `<path d="${cutPath(W - 1, H - 1, 12)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`, {
-    title: `${title.join(' ').toLowerCase()}: ${lines.join(' ').toLowerCase()} (${tag.toLowerCase()})`,
-    defs: `<clipPath id="c"><path d="${cutPath(W, H, 12)}"/></clipPath>`, style: css,
+  return svg(W, H, b + `<path d="${cutPath(W - 1, H - 1, 13)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`, {
+    title: `${title.toLowerCase()}: ${lines.join(' ').toLowerCase()} (${tag.toLowerCase()})`,
+    defs: `<clipPath id="c"><path d="${cutPath(W, H, 13)}"/></clipPath>`, style: css,
   });
 }
 
+const centered = (rows, s, colors, cx = 75, cy = 118) => bitmap(rows, Math.round(cx - (rows[0].length * s) / 2), Math.round(cy - (rows.length * s) / 2), s, colors);
+
 function cards() {
   const out = {};
-  const P = SP.palettes;
-  // strut: pieces from its demo closet on two rails
-  let a = R(0, 9, 34, 1, '#BBB3A7') + R(0, 37, 34, 1, '#BBB3A7');
-  const hanger = ['..h..', '.h.h.', 'h...h'];
-  [['polo_rust', 1], ['sweater_cream', 12], ['jacket_denim', 23]].forEach(([n, hx], i) => {
-    a += `<g class="bob" style="animation-delay:${-i * 0.5}s">${B(hanger, hx + 2, 10, { h: '#BBB3A7' })}${B(SP[n], hx, 13, P[n])}</g>`;
+  // strut: a rail of plain clothes in strut's own colours
+  let a = rect(0, 39, 150, 3, '#BBB3A7');
+  const hanger = ['....h....', '...h.h...', '..h...h..', '.h.....h.'];
+  const tee = ['...ooo.ooo...', '.ooooooooooo.', 'ooooooooooooo', 'ooooooooooooo', 'oo.ooooooo.oo', '...ooooooo...', '...ooooooo...', '...ooooooo...', '...ooooooo...', '...ooooooo...', '...ooooooo...', '...ddddddd...'];
+  const shirt = ['...ooo.ooo...', '.ooooodooooo.', 'ooooooodooooo', 'oooooodoooooo', 'oo.ooodooo.oo', 'oo.ooodooo.oo', 'oo.ooodooo.oo', 'oo.ooodooo.oo', 'oo.ooodooo.oo', 'dd.ooodooo.dd', '...ooodooo...', '...ooodooo...', '...ddddddd...'];
+  const pants = ['.ddddddddd.', '.ooooooooo.', '.ooooooooo.', '.ooooooooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.oooo.oooo.', '.dddd.dddd.'];
+  [[tee, 6, { o: '#F0532B', d: '#c9431f' }], [pants, 56, { o: '#FAF8F5', d: '#cdc6bb' }], [shirt, 105, { o: '#C9A54C', d: '#a3833a' }]].forEach(([g, gx, col], i) => {
+    const w = g[0].length * 3;
+    a += `<g class="bob" style="animation-delay:${-i * 0.6}s">${bitmap(hanger, gx + w / 2 - 13.5, 42, 3, { h: '#BBB3A7' })}${bitmap(g, gx, 54, 3, col)}</g>`;
   });
-  [['jeans_mid', 2], ['chinos_beige', 13], ['trousers_charcoal', 24]].forEach(([n, hx], i) => {
-    a += `<g class="bob" style="animation-delay:${-0.25 - i * 0.5}s">${B(hanger, hx + 1, 38, { h: '#BBB3A7' })}${B(SP[n], hx, 41, P[n])}</g>`;
-  });
-  out.strut = card({ title: ['STRUT'], tag: 'IN DEVELOPMENT', accent: '#F0532B', lines: ['AN AI WARDROBE', 'FOR THE CLOSET', 'YOU ALREADY OWN.'],
-    art: { body: a, css: `.bob{animation:bob 1.5s steps(1) infinite}@keyframes bob{50%{transform:translateY(${U}px)}}` } });
+  a += centered(SP.strut, 1.75, { o: '#F0532B' }, 75, 190);
+  out.strut = card({ title: 'STRUT', tag: 'IN DEVELOPMENT', accent: '#F0532B', lines: ['AN AI WARDROBE FOR', 'THE CLOSET YOU', 'ALREADY OWN.'], meta: 'ANDROID, KOTLIN, COMPOSE',
+    art: { body: a, css: '.bob{animation:bob 1.8s steps(1) infinite}@keyframes bob{50%{transform:translateY(3px)}}' } });
 
-  // pixelforge: the cube, capture brackets, a flash
+  // pixelforge: the cube, capture brackets snapping, a flash
   const pf = SP.pixelforge;
-  a = B(pf.map((r) => r.replace(/c/g, '.')), 2, 19, { a: '#5cc8ff', b: '#0a84ff', d: '#0050e6' }) + `<g class="snap">${B(pf.map((r) => r.replace(/[abd]/g, '.')), 2, 19, { c: '#22e0ff' })}</g>` + R(0, 0, 34, 68, '#fff', 'class="shot"');
-  out.pixelforge = card({ title: ['PIXELFORGE'], tag: 'LIVE', live: true, accent: '#2f8cff', lines: ['TURNS ANY ROBLOX', 'MODEL INTO A', 'CLEAN ICON.'],
-    art: { body: a, css: '.snap{animation:snap 5s steps(1) infinite}@keyframes snap{0%,100%{opacity:.3}18%,80%{opacity:1}}.shot{opacity:0;animation:shot 5s steps(1) infinite}@keyframes shot{20%{opacity:.6}23%{opacity:0}}' } });
+  const cube = pf.map((r) => r.replace(/c/g, '.'));
+  const br = pf.map((r) => r.replace(/[abd]/g, '.'));
+  a = centered(cube, 3.5, { a: '#5cc8ff', b: '#0a84ff', d: '#0050e6' }) + `<g class="snap">${centered(br, 3.5, { c: '#22e0ff' })}</g>` + rect(0, 0, 150, 236, '#fff', 'class="shot"');
+  out.pixelforge = card({ title: 'PIXELFORGE', tag: 'LIVE', live: true, accent: '#2f8cff', lines: ['TURNS ANY ROBLOX', 'MODEL INTO A', 'CLEAN ICON.'], meta: 'STUDIO PLUGIN, ITCH.IO',
+    art: { body: a, css: '.snap{transform-origin:75px 118px;animation:snap 5s cubic-bezier(.16,1,.3,1) infinite}@keyframes snap{0%,100%{transform:scale(1.25);opacity:.3}18%,80%{transform:scale(1);opacity:1}}.shot{opacity:0;animation:shot 5s linear infinite}@keyframes shot{0%,19%{opacity:0}20%{opacity:.7}27%,100%{opacity:0}}' } });
 
   // lucky baby bow: the horseshoe and bow, sparkles
-  a = B(SP.lucky, 4, 21, { m: '#c9e8e2', p: '#f6c9c9', k: '#7f8a84', g: '#c9d6bd', w: '#ffffff' });
-  [[3, 8], [28, 13], [27, 54], [4, 52]].forEach(([sx, sy], i) => (a += `<g class="spk" style="animation-delay:${i * 0.8}s">${B(['.w.', 'www', '.w.'], sx, sy, { w: '#f6c9c9' })}</g>`));
-  out.lucky = card({ title: ['LUCKY', 'BABY BOW'], tag: 'LIVE', live: true, accent: '#f3bfc0', lines: ['SITE AND DESKTOP', 'APP FOR A CUSTOM', 'STATIONERY SHOP.'],
-    art: { body: a, css: '.spk{opacity:0;animation:spk 3.2s steps(1) infinite}@keyframes spk{20%{opacity:1}45%{opacity:0}}' } });
+  a = centered(SP.lucky, 3, { m: '#c9e8e2', p: '#f6c9c9', k: '#7f8a84', g: '#c9d6bd', w: '#ffffff' });
+  [[22, 40], [128, 62], [118, 196], [24, 184]].forEach(([sx, sy], i) => (a += `<g class="spk" style="animation-delay:${i * 0.8}s">${bitmap(['.w.', 'www', '.w.'], sx, sy, 3, { w: '#f6c9c9' })}</g>`));
+  out.lucky = card({ title: 'LUCKY BABY BOW', tag: 'LIVE', live: true, accent: '#f3bfc0', lines: ['SITE AND DESKTOP APP', 'FOR A CUSTOM', 'STATIONERY SHOP.'], meta: 'WEB, ELECTRON, TYPESCRIPT',
+    art: { body: a, css: '.spk{opacity:0;animation:spk 3.2s ease-in-out infinite}@keyframes spk{0%,60%,100%{opacity:0}30%{opacity:1}}' } });
 
-  // already looked: the monogram, a beam scanning down
+  // already looked: the monogram, the slash scanning
   const al = SP.al;
-  a = R(0, 0, 34, 68, '#00300f') + B(al.map((r) => r.replace(/g/g, '.')), 3, 26, { w: '#f1fef3' }) + `<g class="scan">${B(al.map((r) => r.replace(/w/g, '.')), 3, 26, { g: '#2fc062' })}</g>` + R(0, 0, 34, 1, '#2fc062', 'class="beam" opacity=".5"');
-  out.looked = card({ title: ['ALREADY', 'LOOKED'], tag: 'OPEN SOURCE', accent: '#2fc062', lines: ['AGENT SKILLS TO', 'NAME AND BRAND.', 'THEY SAY WHAT', 'THEY MISSED.'],
-    art: { body: a, css: `.scan{animation:scan 2.4s steps(1) infinite}@keyframes scan{50%{opacity:.35}}.beam{animation:beam 6s steps(68) infinite}@keyframes beam{to{transform:translateY(${68 * U}px)}}` } });
+  a = rect(0, 0, 150, 236, '#00300f') + centered(al.map((r) => r.replace(/g/g, '.')), 3, { w: '#f1fef3' }) + `<g class="scan">${centered(al.map((r) => r.replace(/w/g, '.')), 3, { g: '#2fc062' })}</g>`;
+  a += rect(0, 0, 150, 3, '#2fc062', 'class="beam"');
+  out.looked = card({ title: 'ALREADY LOOKED', tag: 'OPEN SOURCE', accent: '#2fc062', lines: ['AGENT SKILLS THAT', 'NAME IT, BRAND IT,', 'AND SAY WHAT THEY', "COULDN'T CHECK."], meta: 'NPX SKILLS ADD',
+    art: { body: a, css: '.scan{animation:scan 2.4s steps(1) infinite}@keyframes scan{50%{opacity:.35}}.beam{opacity:.5;animation:beam 5s linear infinite}@keyframes beam{from{transform:translateY(0)}to{transform:translateY(236px)}}' } });
   return out;
 }
 
 // ---------------------------------------------------------------- footer --
 function footer() {
-  const CW = 220, CH = 46, W = CW * U, H = CH * U;
+  const W = 880, H = 186;
   let b = `<path d="${cutPath(W, H)}" fill="${K.ground}"/>`;
   const tools = ['UNITY', 'ROBLOX STUDIO', 'LUAU', 'ROJO', 'BLENDER', 'KOTLIN', 'SWIFTUI', 'TYPESCRIPT', 'PYTHON'];
-  b += t3('TOOLBOX', 10, 7, K.faint);
-  const x0 = 10 + w3('TOOLBOX') + 5;
-  let x = x0, ty = 5;
+  let x = 40;
+  b += textAt('TOOLBOX', { x, y: 30, s: 2, fill: K.faint });
+  x += textWidth('TOOLBOX', 2) + 22;
+  const x0 = x;
+  let ty = 22;
   tools.forEach((t, i) => {
-    const w = w3(t) + 6;
-    if (x + w > CW - 10) { x = x0; ty += 11; }
-    b += `<g class="in" style="animation-delay:${r2(0.2 + i * 0.08)}s">${R(x, ty, w, 9, K.line)}${R(x + 1, ty + 1, w - 2, 7, K.surface)}${t3(t, x + 3, ty + 2, K.dim)}</g>`;
-    x += w + 2;
+    const w = textWidth(t, 2) + 16;
+    if (x + w > W - 40) { x = x0; ty += 36; }
+    b += `<g class="in" style="animation-delay:${r2(0.2 + i * 0.07)}s">${rect(x, ty, w, 28, K.surface, `stroke="${K.line}"`)}${textAt(t, { x: x + 8, y: ty + 7, s: 2, fill: K.dim })}</g>`;
+    x += w + 8;
   });
-  b += R(10, 28, CW - 20, 1, K.line);
+  b += rect(40, 108, W - 80, 1, K.line);
   // the name, corrected
-  const y = 33;
-  b += t7('REAPER', 10, y, K.faint) + R(9, y + 3, w7('REAPER') + 2, 1, K.opal, 'class="strike"');
-  b += `<g class="fade">${t7('RIPPER', 10 + w7('REAPER') + 6, y, K.ink)}</g>`;
-  b += t3('IT WAS MEANT TO BE REAPER BTW', CW - 10, y + 1, K.faint, 'end');
+  const y = 134;
+  b += textAt('REAPER', { x: 40, y, s: 3, fill: K.faint }) + rect(36, y + 9, textWidth('REAPER', 3) + 8, 3, K.opal, 'class="strike"');
+  b += `<g class="fade">${textAt('RIPPER', { x: 40 + textWidth('REAPER', 3) + 24, y, s: 3, fill: K.ink })}</g>`;
+  b += textAt('IT WAS MEANT TO BE REAPER BTW', { x: W - 40, y: y + 4, s: 2, fill: K.faint, anchor: 'end' });
   const css = `
-  .in{animation:in .01s linear both}@keyframes in{from{opacity:0}}
-  .strike{transform-box:fill-box;transform-origin:0 50%;animation:strike .5s steps(8) 1.2s both}@keyframes strike{from{transform:scaleX(0)}}
-  .fade{animation:fade .01s linear 1.9s both}@keyframes fade{from{opacity:0}}
+  .in{animation:in .5s cubic-bezier(.16,1,.3,1) both}@keyframes in{from{opacity:0;transform:translateY(8px)}}
+  .strike{transform-box:fill-box;transform-origin:0 50%;animation:strike .5s cubic-bezier(.76,0,.24,1) 1.2s both}@keyframes strike{from{transform:scaleX(0)}}
+  .fade{animation:fade .5s ease-out 1.8s both}@keyframes fade{from{opacity:0;transform:translateX(-10px)}}
   ${REDUCE}`;
   return svg(W, H, b + `<path d="${cutPath(W - 1, H - 1)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`, {
     title: 'toolbox: unity, roblox studio, luau, rojo, blender, kotlin, swiftui, typescript, python. it was meant to be reaper btw.', style: css,
