@@ -82,16 +82,17 @@ function blob(cx, cy, widths, fill, extra = '') {
   return widths.map((w, i) => R(cx - w / 2, cy - Math.floor(widths.length / 2) + i, w, 1, fill, extra)).join('');
 }
 
-function hero() {
-  const CW = 220, CH = 110, W = CW * U, H = CH * U;
+// the room. hero() is the readme banner; the same scene is laid out wider for the x header.
+function scene(o = {}) {
+  const { CW = 220, CH = 110, dy = 94, wx = 130, vy = 0, wallX = 206, tx = 12, px = 16, mugX = 60, lx = 100, trayX = 150, plantX = 188, flat = false } = o;
+  const W = CW * U, H = CH * U;
   const rand = rng(11);
   const C = { frame: '#4a4843', frameLo: '#34332f', sky: '#16151c', house: '#2b2931', roof: '#201f27', fence: '#241f24', curtain: '#2d372c', curtainLo: '#232b22', pc: '#cdbfa8', pcLo: '#a99b85', pcHi: '#e2d6c1', warm: '#fff1cf', wood: '#2a221d' };
   let b = R(0, 0, CW, CH, K.ground);
-  for (let i = 0; i < 150; i++) b += R(Math.floor(rand() * CW), Math.floor(rand() * 92), 1, 1, rand() < 0.5 ? '#121210' : '#0a0a09');
-  const dy = 94;
+  for (let i = 0; i < 150; i++) b += R(Math.floor(rand() * CW), Math.floor(rand() * (dy - 2)), 1, 1, rand() < 0.5 ? '#121210' : '#0a0a09');
 
   // window: rain, and the house across the street with two rooms still lit
-  const wx = 130, wy = 14, ww = 60, wh = 46;
+  const wy = 14 + vy, ww = 60, wh = 46;
   b += R(wx - 2, wy - 2, ww + 4, wh + 4, C.frame) + R(wx - 2, wy + wh, ww + 4, 2, C.frameLo);
   let out = R(wx, wy, ww, wh, C.sky);
   for (let i = 0; i < 9; i++) out += R(wx + Math.floor(rand() * ww), wy + Math.floor(rand() * 12), 1, 1, K.ink, `opacity="${r2(0.25 + rand() * 0.4)}" class="tw" style="animation-delay:${r2(rand() * 4)}s"`);
@@ -105,31 +106,32 @@ function hero() {
   b += `<g clip-path="url(#win)">${out}</g>`;
   b += R(wx + 19, wy, 2, wh, C.frame) + R(wx + 39, wy, 2, wh, C.frame);
   // rod and curtains
-  b += R(wx - 14, 8, ww + 28, 1, C.wood) + R(wx - 15, 7, 2, 3, C.wood) + R(wx + ww + 13, 7, 2, 3, C.wood);
-  for (const cx of [wx - 11, wx + ww + 2]) { b += R(cx, 9, 9, 58, C.curtain); for (let k = 0; k < 3; k++) b += R(cx + 1 + k * 3, 9, 1, 58, C.curtainLo); }
+  b += R(wx - 14, 8 + vy, ww + 28, 1, C.wood) + R(wx - 15, 7 + vy, 2, 3, C.wood) + R(wx + ww + 13, 7 + vy, 2, 3, C.wood);
+  for (const cx of [wx - 11, wx + ww + 2]) { b += R(cx, 9 + vy, 9, 58, C.curtain); for (let k = 0; k < 3; k++) b += R(cx + 1 + k * 3, 9 + vy, 1, 58, C.curtainLo); }
   // shelf: two finished sets with their labels
-  const sy = 56;
+  const sy = 56 + vy;
   b += R(wx - 2, sy, ww + 4, 1, C.wood) + R(wx + 2, sy + 1, 1, 2, C.wood) + R(wx + ww - 3, sy + 1, 1, 2, C.wood);
   b += B(['..r...', '.bbbb.', '.bbbb.', '..k...', '..w...', 'gyggwg'], wx + 26, sy - 6, { r: '#d7553f', b: '#3f6fa8', k: '#5a3b2a', w: '#e9e2d8', g: '#5d9a54', y: '#d9b44a' });
   b += B(['g.......', 'g..bbbb.', 'gg.wwwwr', 'ggbbbbbb', 'gkyk.kyk'], wx + 42, sy - 5, { g: '#3f7a45', b: '#7fa3cf', w: '#e9e2d8', r: '#d7553f', k: '#33312F', y: '#d9b44a' });
   for (const lx of [wx + 26, wx + 43]) b += R(lx, sy + 1, 6, 3, K.ink) + R(lx + 1, sy + 2, 3, 1, K.ground);
   // clock (the hand ticks round), frames
-  b += B(['..kkkkk..', '.kwwwwwk.', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', '.kwwwwwk.', '..kkkkk..'], 206, 11, { k: '#3b3129', w: K.ink }) + R(210, 15, 1, 1, K.ground) + R(211, 14, 1, 1, K.ground);
-  [[0, -3], [2, -2], [3, 0], [2, 2], [0, 3], [-2, 2], [-3, 0], [-2, -2]].forEach(([hx, hy], i) => (b += R(210 + hx, 15 + hy, 1, 1, '#d7553f', `class="hand" style="animation-delay:${i}s"`)));
-  b += R(206, 26, 9, 11, K.line2) + R(207, 27, 7, 9, '#a9c3d6') + B(['.gg.', 'gggg', '.k..', 'bbbb'], 208, 29, { g: '#5d9a54', k: '#5a3b2a', b: '#3f6fa8' });
-  b += R(206, 41, 9, 11, K.line2) + R(207, 42, 7, 9, K.ink) + B(['.r.', 'www', 'rrr', 'www', 'kkk'], 209, 44, { r: '#d7553f', w: '#fff', k: '#5a5a5a' });
+  const ax = wallX, ay = 11 + vy;
+  b += B(['..kkkkk..', '.kwwwwwk.', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', 'kwwwwwwwk', '.kwwwwwk.', '..kkkkk..'], ax, ay, { k: '#3b3129', w: K.ink }) + R(ax + 4, ay + 4, 1, 1, K.ground) + R(ax + 5, ay + 3, 1, 1, K.ground);
+  [[0, -3], [2, -2], [3, 0], [2, 2], [0, 3], [-2, 2], [-3, 0], [-2, -2]].forEach(([hx, hy], i) => (b += R(ax + 4 + hx, ay + 4 + hy, 1, 1, '#d7553f', `class="hand" style="animation-delay:${i}s"`)));
+  b += R(ax, ay + 15, 9, 11, K.line2) + R(ax + 1, ay + 16, 7, 9, '#a9c3d6') + B(['.gg.', 'gggg', '.k..', 'bbbb'], ax + 2, ay + 18, { g: '#5d9a54', k: '#5a3b2a', b: '#3f6fa8' });
+  b += R(ax, ay + 30, 9, 11, K.line2) + R(ax + 1, ay + 31, 7, 9, K.ink) + B(['.r.', 'www', 'rrr', 'www', 'kkk'], ax + 3, ay + 33, { r: '#d7553f', w: '#fff', k: '#5a5a5a' });
 
   // name and line
-  textGlyphs('RIPPER', 12 * U, 12 * U, 3 * U).forEach((g, i) => {
+  textGlyphs('RIPPER', tx * U, (12 + vy) * U, 3 * U).forEach((g, i) => {
     b += `<g class="drop" style="animation-delay:${r2(0.15 + i * 0.08)}s"><path d="${g.d}" transform="translate(8 8)" fill="#24231f"/><path d="${g.d}" transform="translate(4 4)" fill="#3d3b36"/><path d="${g.d}" fill="${K.ink}"/></g>`;
   });
-  b += `<g class="fade" style="animation-delay:.9s">${t3("I DON'T PLAY GAMES.", 12, 40, K.ink)}${t3('I MAKE THEM.', 12, 47, K.ink)}</g>`;
-  b += `<g class="fade" style="animation-delay:1.6s">${t3('GAMES, APPS AND TOOLS.', 12, 56, K.faint)}</g>`;
+  b += `<g class="fade" style="animation-delay:.9s">${t3("I DON'T PLAY GAMES.", tx, 40 + vy, K.ink)}${t3('I MAKE THEM.', tx, 47 + vy, K.ink)}</g>`;
+  b += `<g class="fade" style="animation-delay:1.6s">${t3('GAMES, APPS AND TOOLS.', tx, 56 + vy, K.faint)}</g>`;
 
   // desk
   b += R(0, dy, CW, CH - dy, '#241a16') + R(0, dy, CW, 1, '#3a2a23');
   // the old computer, code writing itself
-  const px = 16, py = dy - 29;
+  const py = dy - 29;
   b += R(px, py, 36, 28, C.pc) + R(px, py, 36, 1, C.pcHi) + R(px, py + 26, 36, 2, C.pcLo) + R(px + 25, py + 2, 1, 22, C.pcLo);
   b += R(px + 2, py + 3, 22, 20, '#17130f') + R(px + 3, py + 4, 20, 18, '#050505');
   const code = [[0, 7, K.opal], [0, 4, K.dim, 5, 8, K.ink], [2, 11, K.dim], [2, 5, K.ink, 8, 6, K.opal], [4, 8, K.dim], [2, 3, K.dim], [0, 5, K.opal, 6, 9, K.dim]];
@@ -146,10 +148,9 @@ function hero() {
   for (let k = 0; k < 15; k++) b += R(px - 1 + k * 2, dy + 4, 1, 1, '#f1e9da');
   b += R(px + 33, dy + 4, 4, 2, C.pcHi);
   // mug with steam
-  b += R(60, dy - 6, 5, 7, '#d8cdbd') + R(60, dy - 6, 5, 1, '#57634f') + R(65, dy - 5, 2, 1, '#d8cdbd') + R(66, dy - 4, 1, 3, '#d8cdbd') + R(65, dy - 1, 2, 1, '#d8cdbd');
-  for (let i = 0; i < 2; i++) b += R(61 + i * 2, dy - 9, 1, 2, K.dim, `class="steam" style="animation-delay:${i * 1.2}s"`);
+  b += R(mugX, dy - 6, 5, 7, '#d8cdbd') + R(mugX, dy - 6, 5, 1, '#57634f') + R(mugX + 5, dy - 5, 2, 1, '#d8cdbd') + R(mugX + 6, dy - 4, 1, 3, '#d8cdbd') + R(mugX + 5, dy - 1, 2, 1, '#d8cdbd');
+  for (let i = 0; i < 2; i++) b += R(mugX + 1 + i * 2, dy - 9, 1, 2, K.dim, `class="steam" style="animation-delay:${i * 1.2}s"`);
   // lamp, its beam and the pool of light on the desk
-  const lx = 100;
   for (let i = 0; i < 19; i++) b += R(lx + 16 - Math.floor(i * 0.5), dy - 19 + i, 9 + i, 1, C.warm, 'opacity=".05"');
   b += blob(lx + 20, dy + 8, [22, 36, 46, 50, 50, 46, 36, 22], '#3a2a1c') + blob(lx + 20, dy + 8, [14, 28, 38, 42, 38, 28, 14], '#5e4426');
   b += `<g class="flick">` + blob(lx + 20, dy + 8, [10, 22, 30, 30, 22, 10], '#93703a') + blob(lx + 20, dy + 8, [8, 16, 16, 8], '#d9b266') + '</g>';
@@ -161,9 +162,9 @@ function hero() {
   b += `<g class="press">${brick((lx + 20) * U, (dy - 8) * U, 2, K.green, '#7fd07c', '#3a8f3d')}</g>`;
   b += brick((lx + 32) * U, (dy - 4) * U, 2, '#d7553f', '#ea7a66', '#b03f2c');
   // tray, plant and pencils
-  b += R(150, dy + 6, 9, 1, '#6fa7a0') + R(150, dy + 7, 9, 1, '#4f817b');
-  b += B(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], 188, dy - 15, { g: '#2c4a31', d: '#1f3525' });
-  b += R(190, dy - 7, 5, 8, '#59606f') + R(190, dy - 7, 5, 1, '#6d7484') + R(176, dy - 6, 4, 7, '#59606f') + R(177, dy - 8, 1, 2, '#d9b44a') + R(179, dy - 9, 1, 3, '#c8532f');
+  b += R(trayX, dy + 6, 9, 1, '#6fa7a0') + R(trayX, dy + 7, 9, 1, '#4f817b');
+  b += B(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], plantX, dy - 15, { g: '#2c4a31', d: '#1f3525' });
+  b += R(plantX + 2, dy - 7, 5, 8, '#59606f') + R(plantX + 2, dy - 7, 5, 1, '#6d7484') + R(plantX - 12, dy - 6, 4, 7, '#59606f') + R(plantX - 11, dy - 8, 1, 2, '#d9b44a') + R(plantX - 9, dy - 9, 1, 3, '#c8532f');
 
   const css = `
   .tw{animation:tw 3.4s steps(2) infinite}@keyframes tw{50%{opacity:.1}}
@@ -180,10 +181,12 @@ function hero() {
   .press{animation:press 4s steps(1) infinite}@keyframes press{0%{transform:translateY(-${10 * U}px);opacity:0}10%{opacity:1}18%{transform:translateY(-${5 * U}px)}26%,100%{transform:translateY(0);opacity:1}}
   ${REDUCE}`;
   const defs = `<clipPath id="c"><path d="${cutPath(W, H)}"/></clipPath><clipPath id="win"><rect x="${wx * U}" y="${wy * U}" width="${ww * U}" height="${wh * U}"/></clipPath>`;
-  return svg(W, H, `<g clip-path="url(#c)">${b}</g><path d="${cutPath(W - 1, H - 1)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`, {
-    title: "ripper. i don't play games. i make them. games, apps and tools.", defs, style: css,
-  });
+  const body = flat ? b : `<g clip-path="url(#c)">${b}</g><path d="${cutPath(W - 1, H - 1)}" transform="translate(.5 .5)" fill="none" stroke="${K.line}"/>`;
+  return svg(W, H, body, { title: "ripper. i don't play games. i make them. games, apps and tools.", defs, style: css });
 }
+const hero = () => scene();
+// x header, 1500x500. the avatar sits over the bottom left, so that corner of the desk stays empty.
+const banner = () => scene({ CW: 375, CH: 125, dy: 104, vy: 8, tx: 26, px: 92, mugX: 138, lx: 186, trayX: 250, wx: 212, wallX: 300, plantX: 336, flat: true });
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
@@ -340,3 +343,5 @@ for (const [n, c] of Object.entries(files)) {
   console.log(file, (c.length / 1024).toFixed(0) + 'kb');
 }
 writeFileSync(readmePath, readme);
+mkdirSync(join(here, '..', 'banner'), { recursive: true });
+writeFileSync(join(here, '..', 'banner', 'x-banner.svg'), banner());
