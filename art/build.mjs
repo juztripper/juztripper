@@ -60,7 +60,7 @@ function hero() {
   out += `<path d="M${wx + 16} ${wy + 96}L${wx + 84} ${wy + 34}H${wx + 190}L${wx + 250} ${wy + 96}Z" fill="${C.roof}"/>` + rect(wx + 26, wy + 96, 214, 100, C.house);
   out += rect(wx, wy + 156, ww, 40, C.fence) + rect(wx, wy + 156, ww, 3, '#322b32');
   out += `<circle cx="${wx + 14}" cy="${wy + 130}" r="34" fill="#3a2a22"/><circle cx="${wx + 40}" cy="${wy + 150}" r="20" fill="#2f221c"/>`;
-  for (const [x, w] of [[64, 28], [118, 44]]) out += rect(wx + x - 10, wy + 100, w + 20, 50, C.warm, 'opacity=".1" class="lit"') + rect(wx + x - 4, wy + 106, w + 8, 38, C.warm, 'opacity=".25" class="lit"') + rect(wx + x, wy + 110, w, 30, C.warm, 'class="lit"') + rect(wx + x + w / 2 - 1, wy + 110, 2, 30, '#d8c9a4');
+  for (const [x, w] of [[40, 30], [104, 52]]) out += rect(wx + x - 10, wy + 100, w + 20, 50, C.warm, 'opacity=".1" class="lit"') + rect(wx + x - 4, wy + 106, w + 8, 38, C.warm, 'opacity=".25" class="lit"') + rect(wx + x, wy + 110, w, 30, C.warm, 'class="lit"') + rect(wx + x + w / 2 - 1, wy + 110, 2, 30, '#d8c9a4');
   out += rect(wx + 188, wy + 112, 24, 28, '#1a1920') + rect(wx + 199, wy + 112, 2, 28, C.house);
   for (let i = 0; i < 54; i++) out += rect(wx + Math.floor(rand() * ww), wy - 30 + Math.floor(rand() * wh), 1.5, 10, '#cfd3e6', `opacity="${r2(0.18 + rand() * 0.35)}" class="rain" style="animation-delay:${r2(-rand() * 1.2)}s;animation-duration:${r2(0.7 + rand() * 0.5)}s"`);
   b += `<g clip-path="url(#win)">${out}</g>`;
