@@ -47,17 +47,17 @@ PIP = {"g": "#4daf4a", "d": "#3a8f3d", "w": "#fff5e0", "k": "#33312f", "l": "#8a
 out = {"palettes": {}}
 box = load("pip-awake.png").getbbox()
 for n in ("awake", "asleep", "looking", "pleased"):
-    out[f"pip-{n}"] = sprite(load(f"pip-{n}.png").crop(box), 40, PIP, crop=False)
+    out[f"pip-{n}"] = sprite(load(f"pip-{n}.png").crop(box), 24, PIP, crop=False)
 out["palettes"]["pip"] = PIP
 out["strut"] = sprite(load("strut.png"), 74, {"o": "#1a1714"})
-out["pixelforge"] = sprite(load("pixelforge.png"), 32, {"c": "#00ffff", "a": "#5cc8ff", "b": "#0a84ff", "d": "#0050e6"})
-out["lucky"] = sprite(load("lucky.jpg", key_bg=True), 36, {"m": "#c9e8e2", "p": "#f6c9c9", "k": "#7f8a84", "g": "#c9d6bd", "w": "#ffffff"})
+out["pixelforge"] = sprite(load("pixelforge.png"), 30, {"c": "#00ffff", "a": "#5cc8ff", "b": "#0a84ff", "d": "#0050e6"})
+out["lucky"] = sprite(load("lucky.jpg", key_bg=True), 26, {"m": "#c9e8e2", "p": "#f6c9c9", "k": "#7f8a84", "g": "#c9d6bd", "w": "#ffffff"})
 al = load("al.png")
 al = al.crop((0, 0, int(al.height * 1.78), al.height))
-out["al"] = sprite(al, 40, {"w": "#f1fef3", "g": "#2fc062"})
+out["al"] = sprite(al, 28, {"w": "#f1fef3", "g": "#2fc062"})
 
 
-def garment(name, w, colors=9):
+def garment(name, w, colors=4):
     """real pieces from strut's demo closet: flood the studio backdrop away, then quantize."""
     from PIL import ImageDraw
     img = Image.open(SRC / f"strut-{name}.png").convert("RGB")
@@ -83,7 +83,7 @@ def garment(name, w, colors=9):
     out[name] = rows
 
 
-for n, w in (("polo_rust", 30), ("sweater_cream", 30), ("jacket_denim", 30), ("jeans_mid", 24), ("chinos_beige", 24), ("trousers_charcoal", 24), ("sneakers_white", 26), ("loafers_brown", 26), ("boots_chelsea", 26)):
+for n, w in (("polo_rust", 10), ("sweater_cream", 10), ("jacket_denim", 10), ("jeans_mid", 8), ("chinos_beige", 8), ("trousers_charcoal", 8)):
     garment(n, w)
 (Path(__file__).resolve().parent / "sprites.json").write_text(json.dumps(out))
 for k, v in out.items():
