@@ -1,7 +1,8 @@
 // pixel art for the profile. run: python3 art/sprites.py && node art/build.mjs
 // theme: a maker's desk at night. ripper's games tokens (charcoal, cream, one opal accent),
 // and every project keeps its own brand colours. sprites come from the real logos (art/sprites.py).
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { svg, bitmap, textAt, textGlyphs, textWidth, rng, r2 } from './lib.mjs';
@@ -150,7 +151,8 @@ function hero() {
   // lamp, its beam and the pool of light on the desk
   const lx = 100;
   for (let i = 0; i < 19; i++) b += R(lx + 16 - Math.floor(i * 0.5), dy - 19 + i, 9 + i, 1, C.warm, 'opacity=".05"');
-  b += `<g class="flick">` + blob(lx + 20, dy + 8, [20, 34, 44, 48, 48, 44, 34, 20], '#e2a44c', 'opacity=".3"') + blob(lx + 20, dy + 8, [12, 24, 30, 30, 24, 12], '#ffd88f', 'opacity=".35"') + '</g>';
+  b += blob(lx + 20, dy + 8, [22, 36, 46, 50, 50, 46, 36, 22], '#3a2a1c') + blob(lx + 20, dy + 8, [14, 28, 38, 42, 38, 28, 14], '#5e4426');
+  b += `<g class="flick">` + blob(lx + 20, dy + 8, [10, 22, 30, 30, 22, 10], '#93703a') + blob(lx + 20, dy + 8, [8, 16, 16, 8], '#d9b266') + '</g>';
   for (let i = 0; i < 8; i++) b += R(lx + 8 + Math.floor(rand() * 26), dy - 14 + Math.floor(rand() * 12), 1, 1, C.warm, `opacity=".5" class="mote" style="animation-delay:${r2(-rand() * 8)}s;animation-duration:${r2(6 + rand() * 5)}s"`);
   b += R(lx - 3, dy, 9, 1, '#d9d0c4') + R(lx + 1, dy - 23, 1, 23, '#d9d0c4') + R(lx + 1, dy - 24, 15, 1, '#d9d0c4');
   b += B(['..sssss..', '.sssssss.', 'sssssssss', 'wwwwwwwww'], lx + 15, dy - 24, { s: '#bfb5a8', w: C.warm });
@@ -170,7 +172,7 @@ function hero() {
   .hand{opacity:0;animation:hand 8s steps(1) infinite}@keyframes hand{0%{opacity:1}12.5%{opacity:0}}
   .drop{animation:drop .5s steps(5) both}@keyframes drop{from{transform:translateY(-40px);opacity:0}}
   .fade{animation:fade .01s linear both}@keyframes fade{from{opacity:0}}
-  .flick{animation:flick 6s steps(1) infinite}@keyframes flick{47%{opacity:.6}49%{opacity:1}}
+  .flick{animation:flick 6s steps(1) infinite}@keyframes flick{47%{opacity:.75}49%{opacity:1}}
   .mote{animation:mote 8s steps(8) infinite}@keyframes mote{0%{opacity:0}15%{opacity:.6}100%{transform:translate(${3 * U}px,-${8 * U}px);opacity:0}}
   .code{opacity:0;animation:code 9s steps(1) infinite}@keyframes code{0%{opacity:0}4%,90%{opacity:1}100%{opacity:0}}
   .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
@@ -309,7 +311,14 @@ function footer() {
 const out = join(here, '..', 'assets');
 mkdirSync(out, { recursive: true });
 const files = { hero: hero(), brickset: brickset(), footer: footer(), ...cards() };
+const readmePath = join(here, '..', 'README.md');
+let readme = readFileSync(readmePath, 'utf8');
+for (const f of readdirSync(out)) if (f.endsWith('.svg') && f !== 'spacer.svg') unlinkSync(join(out, f));
 for (const [n, c] of Object.entries(files)) {
-  writeFileSync(join(out, `${n}.svg`), c);
-  console.log(n, (c.length / 1024).toFixed(0) + 'kb');
+  // the content hash is in the file name, so a changed image is a new url and nothing can serve a stale copy
+  const file = `${n}-${createHash('sha1').update(c).digest('hex').slice(0, 8)}.svg`;
+  writeFileSync(join(out, file), c);
+  readme = readme.replace(new RegExp(`assets/${n}(-[0-9a-f]{8})?\\.svg`, 'g'), `assets/${file}`);
+  console.log(file, (c.length / 1024).toFixed(0) + 'kb');
 }
+writeFileSync(readmePath, readme);
