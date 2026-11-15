@@ -187,29 +187,32 @@ function hero() {
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
-  const W = 880, H = 300, SW = 408;
+  const W = 880, H = 300, SW = 344;
   const C = { cream: '#FFF5E0', ink: '#33312F', muted: '#5F5A52' };
   let b = rect(0, 0, W, H, C.cream) + rect(0, 0, W, H, 'none', `stroke="${C.ink}" stroke-width="8"`);
   // the stage: a set gets built one piece at a time while pip talks you through it
   const fy = 240;
   b += rect(4, 4, SW - 4, H - 8, K.kraft) + rect(SW, 4, 4, H - 8, C.ink) + rect(4, fy, SW - 4, H - fy - 4, K.kraftLo) + rect(4, fy, SW - 4, 4, C.ink);
-  // the opened box and bag 1
-  b += rect(20, fy - 52, 96, 52, '#b98d58') + rect(20, fy - 52, 96, 4, C.ink) + rect(20, fy - 52, 4, 52, C.ink) + rect(112, fy - 52, 4, 52, C.ink) + rect(12, fy - 64, 56, 12, '#d9b68a') + rect(12, fy - 68, 56, 4, C.ink) + rect(12, fy - 64, 4, 12, C.ink);
-  b += textAt('MAILBOX', { x: 30, y: fy - 40, s: 2, fill: C.ink }) + rect(30, fy - 20, 16, 16, K.seal) + rect(30, fy - 20, 16, 4, C.ink) + rect(30, fy - 8, 16, 4, C.ink) + rect(26, fy - 16, 4, 8, C.ink) + rect(46, fy - 16, 4, 8, C.ink);
-  b += rect(76, fy - 96, 40, 44, '#eef3ea') + rect(76, fy - 100, 40, 4, C.ink) + rect(72, fy - 96, 4, 44, C.ink) + rect(116, fy - 96, 4, 44, C.ink) + rect(84, fy - 88, 24, 24, K.seal) + textAt('1', { x: 91, y: fy - 86, s: 3, fill: C.ink });
   // the mailbox set, pressed on in order
-  const mx = 150;
+  const mx = 44;
   const blue = ['#5f8fc4', '#86addb', '#44709f'], brown = ['#8b5a3c', '#a97552', '#6b4229'], white = ['#f3ece4', '#ffffff', '#cfc6bb'], green = [K.green, '#7fd07c', '#3a8f3d'], red = ['#d7553f', '#ea7a66', '#b03f2c'];
+  // rows sit 16px apart, so each piece covers the studs of the one below: snapped on, no gaps
   const pieces = [
-    [0, 0, 8, green], [0, -20, 2, white], [72, -20, 2, white], [36, -20, 2, brown], [36, -40, 2, brown],
-    [12, -60, 6, blue], [12, -80, 6, blue], [24, -100, 4, blue], [84, -80, 1, red],
+    [0, 0, 8, green], [0, -16, 2, white], [72, -16, 2, white], [36, -16, 2, brown], [36, -32, 2, brown],
+    [12, -48, 6, blue], [12, -64, 6, blue], [24, -80, 4, blue], [84, -64, 1, red],
   ];
-  pieces.forEach(([dx, dy, n, c], i) => (b += `<g class="pc" style="animation-delay:${r2(1.2 + i * 0.9)}s">${brick(mx + dx, fy - 16 + dy, n, c[0], c[1], c[2])}</g>`));
+  let pcCss = '';
+  pieces.forEach(([dx, dy, n, c], i) => {
+    // one shared 12s timeline: each piece lands at its own moment, and they all clear together
+    const t = r2(8 + i * 7.5);
+    pcCss += `.k${i}{animation:k${i} 12s steps(1) infinite}@keyframes k${i}{0%{opacity:0;transform:translateY(-48px)}${t}%{opacity:1;transform:translateY(-48px)}${t + 1}%{opacity:1;transform:translateY(-24px)}${t + 2}%{opacity:1;transform:translateY(-8px)}${t + 3}%{opacity:1;transform:translateY(0)}95%{opacity:0;transform:translateY(0)}}`;
+    b += `<g class="k${i}" style="opacity:0">${brick(mx + dx, fy - 16 + dy, n, c[0], c[1], c[2])}</g>`;
+  });
   // pip, and what pip says (the game's own lines)
   const p = pip(SW - 132, fy - 29 * 3 + 3, 3, 'q');
   b += p.body;
   const says = ['BAG 1 FIRST.', 'THAT ONE CLICKED.', 'DONE. SHELF.'];
-  const bx = 150, by = 24, bw = 234;
+  const bx = 44, by = 24, bw = 276;
   b += rect(bx + 4, by + 4, bw, 40, C.ink) + rect(bx, by, bw, 40, C.cream) + rect(bx, by, bw, 4, C.ink) + rect(bx, by + 36, bw, 4, C.ink) + rect(bx, by, 4, 40, C.ink) + rect(bx + bw - 4, by, 4, 40, C.ink);
   b += rect(SW - 84, by + 40, 12, 4, C.cream) + rect(SW - 84, by + 44, 4, 12, C.ink) + rect(SW - 72, by + 44, 4, 8, C.ink) + rect(SW - 80, by + 44, 8, 8, C.cream) + rect(SW - 76, by + 52, 4, 4, C.ink) + rect(SW - 80, by + 52, 4, 4, C.cream) + rect(SW - 80, by + 56, 4, 4, C.ink);
   says.forEach((t, i) => (b += `<g class="say s${i}">${textAt(t, { x: bx + 16, y: by + 13, s: 2, fill: C.ink })}</g>`));
@@ -226,9 +229,9 @@ function brickset() {
     cx += w + 14;
   }
   const css = `${p.css}
-  .pc{animation:pc 12s steps(1) infinite both}@keyframes pc{0%{transform:translateY(-48px);opacity:0}1%{opacity:1}2%{transform:translateY(-24px)}3%{transform:translateY(-8px)}4%,92%{transform:translateY(0);opacity:1}96%,100%{opacity:0;transform:translateY(0)}}
+  ${pcCss}
   .say{opacity:0}.s0{animation:s0 12s steps(1) infinite}.s1{animation:s1 12s steps(1) infinite}.s2{animation:s2 12s steps(1) infinite}
-  @keyframes s0{0%{opacity:1}30%{opacity:0}97%{opacity:1}}@keyframes s1{30%{opacity:1}76%{opacity:0}}@keyframes s2{76%{opacity:1}97%{opacity:0}}
+  @keyframes s0{0%{opacity:1}30%{opacity:0}95%{opacity:1}}@keyframes s1{0%{opacity:0}30%{opacity:1}74%{opacity:0}}@keyframes s2{0%{opacity:0}74%{opacity:1}95%{opacity:0}}
   ${REDUCE}`;
   return svg(W, H, b, { title: 'build a brick set, my main project. a calm roblox game: open the box, tear the bags, press every piece on. in development.', style: css });
 }

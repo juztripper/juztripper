@@ -2,7 +2,7 @@
 
 <br><br>
 
-<img src="assets/brickset-79bd4623.svg" width="100%" alt="build a brick set, my main project: a calm roblox game. open the box, tear the bags, press every piece on. in development.">
+<img src="assets/brickset-98af4ed0.svg" width="100%" alt="build a brick set, my main project: a calm roblox game. open the box, tear the bags, press every piece on. in development.">
 
 <br><br>
 
