@@ -157,8 +157,8 @@ function hero() {
   b += R(lx - 3, dy, 9, 1, '#d9d0c4') + R(lx + 1, dy - 23, 1, 23, '#d9d0c4') + R(lx + 1, dy - 24, 15, 1, '#d9d0c4');
   b += B(['..sssss..', '.sssssss.', 'sssssssss', 'wwwwwwwww'], lx + 15, dy - 24, { s: '#bfb5a8', w: C.warm });
   // a set being built under the lamp: one piece presses on, again and again
-  b += brick((lx + 14) * U, (dy - 4) * U, 4, '#5f8fc4', '#86addb', '#44709f') + brick((lx + 14) * U, (dy - 9) * U, 2, '#f3ece4', '#ffffff', '#cfc6bb');
-  b += `<g class="press">${brick((lx + 20) * U, (dy - 9) * U, 2, K.green, '#7fd07c', '#3a8f3d')}</g>`;
+  b += brick((lx + 14) * U, (dy - 4) * U, 4, '#5f8fc4', '#86addb', '#44709f') + brick((lx + 14) * U, (dy - 8) * U, 2, '#f3ece4', '#ffffff', '#cfc6bb');
+  b += `<g class="press">${brick((lx + 20) * U, (dy - 8) * U, 2, K.green, '#7fd07c', '#3a8f3d')}</g>`;
   b += brick((lx + 32) * U, (dy - 4) * U, 2, '#d7553f', '#ea7a66', '#b03f2c');
   // tray, plant and pencils
   b += R(150, dy + 6, 9, 1, '#6fa7a0') + R(150, dy + 7, 9, 1, '#4f817b');

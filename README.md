@@ -1,4 +1,4 @@
-<img src="assets/hero-ed02125c.svg" width="100%" alt="ripper. i don't play games. i make them. solo studio ripper's games, portugal.">
+<img src="assets/hero-52ab4c2c.svg" width="100%" alt="ripper. i don't play games. i make them. solo studio ripper's games, portugal.">
 
 <br><br>
 
