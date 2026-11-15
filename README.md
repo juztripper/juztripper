@@ -2,12 +2,12 @@
 
 <br><br>
 
-<img src="assets/brickset-c72a1122.svg" width="100%" alt="build a brick set, my main project: a calm roblox game. open the box, tear the bags, press every piece on. in development.">
+<img src="assets/brickset-79bd4623.svg" width="100%" alt="build a brick set, my main project: a calm roblox game. open the box, tear the bags, press every piece on. in development.">
 
 <br><br>
 
 <p>
-  <img src="assets/strut-31222e13.svg" width="49.4%" alt="strut: an ai wardrobe for the closet you already own. in development."><img src="assets/spacer.svg" width="1.2%" alt=""><a href="https://juztripper.itch.io/pixelforge"><img src="assets/pixelforge-cfcfe71f.svg" width="49.4%" alt="pixelforge: a roblox studio plugin that turns any model into a clean icon. live."></a>
+  <img src="assets/strut-8e176ce0.svg" width="49.4%" alt="strut: an ai wardrobe for the closet you already own. in development."><img src="assets/spacer.svg" width="1.2%" alt=""><a href="https://juztripper.itch.io/pixelforge"><img src="assets/pixelforge-cfcfe71f.svg" width="49.4%" alt="pixelforge: a roblox studio plugin that turns any model into a clean icon. live."></a>
 </p>
 <p>
   <a href="https://github.com/juztripper/lucky-editor-releases"><img src="assets/lucky-dfa06022.svg" width="49.4%" alt="lucky baby bow: website and desktop app for a custom stationery shop in portugal. live."></a><img src="assets/spacer.svg" width="1.2%" alt=""><a href="https://github.com/juztripper/already-looked"><img src="assets/looked-9f5d4c9e.svg" width="49.4%" alt="already looked: two skills for coding agents. open source."></a>
