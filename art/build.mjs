@@ -185,8 +185,8 @@ function scene(o = {}) {
   return svg(W, H, body, { title: "ripper. i don't play games. i make them. games, apps and tools.", defs, style: css });
 }
 const hero = () => scene();
-// x header, 1500x500. the avatar sits over the bottom left, so that corner of the desk stays empty.
-const banner = () => scene({ CW: 375, CH: 125, dy: 104, vy: 8, tx: 26, px: 92, mugX: 138, lx: 186, trayX: 250, wx: 212, wallX: 300, plantX: 336, flat: true });
+// x header, 1500x500. the avatar covers the bottom left (about the first 110 cells of the desk), so the desk starts after it.
+const banner = () => scene({ CW: 375, CH: 125, dy: 104, vy: 8, tx: 26, px: 122, mugX: 168, lx: 212, trayX: 282, wx: 236, wallX: 322, plantX: 348, flat: true });
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
