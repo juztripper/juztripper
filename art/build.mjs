@@ -166,6 +166,14 @@ function scene(o = {}) {
   b += B(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], plantX, dy - 15, { g: '#2c4a31', d: '#1f3525' });
   b += R(plantX + 2, dy - 7, 5, 8, '#59606f') + R(plantX + 2, dy - 7, 5, 1, '#6d7484') + R(plantX - 12, dy - 6, 4, 7, '#59606f') + R(plantX - 11, dy - 8, 1, 2, '#d9b44a') + R(plantX - 9, dy - 9, 1, 3, '#c8532f');
 
+  // the wide x header has more desk to fill: loose pieces by the mug, sealed sets waiting their turn
+  if (o.extras) {
+    const [e1, e2] = o.extras;
+    b += brick(e1 * U, (dy - 4) * U, 2, '#d9b44a', '#ecd07c', '#b08f2f') + brick((e1 + 9) * U, (dy - 4) * U, 4, '#8b5a3c', '#a97552', '#6b4229') + brick((e1 + 12) * U, (dy - 8) * U, 2, '#5f8fc4', '#86addb', '#44709f');
+    b += R(e2, dy - 11, 26, 11, K.kraft) + R(e2, dy - 11, 26, 1, '#e0bb8c') + R(e2 + 24, dy - 11, 2, 11, K.kraftLo) + R(e2, dy - 5, 24, 1, '#2a2826') + R(e2 + 4, dy - 7, 4, 4, K.seal);
+    b += R(e2 + 4, dy - 20, 18, 9, '#b98d58') + R(e2 + 4, dy - 20, 18, 1, '#d2a877') + R(e2 + 20, dy - 20, 2, 9, '#99703f') + R(e2 + 4, dy - 15, 16, 1, '#2a2826') + R(e2 + 7, dy - 17, 4, 4, K.seal);
+  }
+
   const css = `
   .tw{animation:tw 3.4s steps(2) infinite}@keyframes tw{50%{opacity:.1}}
   .rain{animation:rain 1s steps(10) infinite}@keyframes rain{to{transform:translateY(${20 * U}px)}}
@@ -186,7 +194,7 @@ function scene(o = {}) {
 }
 const hero = () => scene();
 // x header, 1500x500. the avatar covers the bottom left (about the first 110 cells of the desk), so the desk starts after it.
-const banner = () => scene({ CW: 375, CH: 125, dy: 104, vy: 8, tx: 26, px: 122, mugX: 168, lx: 212, trayX: 282, wx: 236, wallX: 322, plantX: 348, flat: true });
+const banner = () => scene({ CW: 375, CH: 125, dy: 104, vy: 8, tx: 26, px: 118, mugX: 162, lx: 212, trayX: 268, wx: 236, wallX: 322, plantX: 350, extras: [176, 290], flat: true });
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
