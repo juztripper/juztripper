@@ -55,6 +55,36 @@ out["lucky"] = sprite(load("lucky.jpg", key_bg=True), 36, {"m": "#c9e8e2", "p": 
 al = load("al.png")
 al = al.crop((0, 0, int(al.height * 1.78), al.height))
 out["al"] = sprite(al, 40, {"w": "#f1fef3", "g": "#2fc062"})
+
+
+def garment(name, w, colors=9):
+    """real pieces from strut's demo closet: flood the studio backdrop away, then quantize."""
+    from PIL import ImageDraw
+    img = Image.open(SRC / f"strut-{name}.png").convert("RGB")
+    key = (255, 0, 255)
+    for xy in ((0, 0), (img.width - 1, 0), (0, img.height - 1), (img.width - 1, img.height - 1)):
+        ImageDraw.floodfill(img, xy, key, thresh=14)
+    rgba = img.convert("RGBA")
+    px = rgba.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            if px[x, y][:3] == key:
+                px[x, y] = (0, 0, 0, 0)
+    rgba = rgba.crop(rgba.getbbox())
+    h = max(1, round(w * rgba.height / rgba.width))
+    small = rgba.resize((w, h), Image.BOX)
+    q = small.convert("RGB").quantize(colors, method=Image.MEDIANCUT)
+    pal = q.getpalette()
+    letters = "abcdefghijklmnop"
+    rows = []
+    for y in range(h):
+        rows.append("".join(letters[q.getpixel((x, y))] if small.getpixel((x, y))[3] > 140 else "." for x in range(w)))
+    out["palettes"][name] = {letters[i]: "#%02x%02x%02x" % tuple(pal[i * 3:i * 3 + 3]) for i in range(colors)}
+    out[name] = rows
+
+
+for n, w in (("polo_rust", 30), ("sweater_cream", 30), ("jacket_denim", 30), ("jeans_mid", 24), ("chinos_beige", 24), ("trousers_charcoal", 24), ("sneakers_white", 26), ("loafers_brown", 26), ("boots_chelsea", 26)):
+    garment(n, w)
 (Path(__file__).resolve().parent / "sprites.json").write_text(json.dumps(out))
 for k, v in out.items():
     if k != "palettes":

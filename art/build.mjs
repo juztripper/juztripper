@@ -150,34 +150,93 @@ function hero() {
 
 // ------------------------------------------------------ build a brick set --
 function brickset() {
-  const W = 880, H = 300;
-  const C = { cream: '#FFF5E0', ink: '#33312F', muted: '#5F5A52' };
-  let b = rect(0, 0, W, H, C.cream) + rect(0, 0, W, H, 'none', `stroke="${C.ink}" stroke-width="8"`);
-  // kraft stage on the left: pip watching a set get built, one piece at a time
-  b += rect(4, 4, 330, H - 8, K.kraft) + rect(330, 4, 4, H - 8, C.ink) + rect(4, H - 60, 326, 56, K.kraftLo) + rect(4, H - 60, 326, 4, C.ink);
-  const p = pip(34, H - 60 - 29 * 4 + 4, 4, 'q');
-  b += p.body;
-  const bx = 212, by = H - 60 - 16;
-  const tower = [
-    [0, 0, 4, '#5f8fc4', '#86addb', '#44709f'], [0, -20, 2, '#8b5a3c', '#a97552', '#6b4229'], [24, -20, 2, '#f3ece4', '#ffffff', '#cfc6bb'],
-    [0, -40, 4, '#5f8fc4', '#86addb', '#44709f'], [12, -60, 2, '#d7553f', '#ea7a66', '#b03f2c'],
-  ];
-  tower.forEach(([dx, dy, n, c, hi, lo], i) => (b += `<g class="pc" style="animation-delay:${r2(0.6 + i * 1.3)}s">${brick(bx + dx, by + dy, n, c, hi, lo)}</g>`));
-  b += rect(W - 150, 4, 146, 30, C.ink) + textAt('MAIN PROJECT', { x: W - 77, y: 12, s: 2, fill: C.cream, anchor: 'middle' });
-  const x = 366;
-  b += textAt('BUILD A', { x, y: 34, s: 3, fill: C.ink }) + textAt('BRICK SET', { x, y: 64, s: 6, fill: C.ink });
-  b += textAt('OPEN THE BOX. TEAR THE BAGS.', { x, y: 128, s: 2, fill: C.ink }) + textAt('PRESS EVERY PIECE ON.', { x, y: 150, s: 2, fill: C.ink });
-  b += textAt('A CALM ROBLOX GAME ABOUT BUILDING', { x, y: 184, s: 2, fill: C.muted }) + textAt('BOXED BRICK SETS BY HAND. NO TIMERS.', { x, y: 204, s: 2, fill: C.muted });
-  let cx = x;
-  for (const [t, fill] of [['IN DEVELOPMENT', K.seal], ['ROBLOX', '#fff'], ['LUAU', '#fff'], ['BLENDER', '#fff']]) {
-    const w = textWidth(t, 2) + 20;
-    b += rect(cx + 4, 244 + 4, w, 28, C.ink) + rect(cx, 244, w, 28, fill, `stroke="${C.ink}" stroke-width="3"`) + textAt(t, { x: cx + 10, y: 251, s: 2, fill: C.ink });
-    cx += w + 14;
+  const W = 880, H = 340;
+  const C = { cream: '#FFF5E0', ink: '#33312F', muted: '#5F5A52', wall: '#5b3f3c', wallLo: '#4d3431', desk: '#38231f', deskHi: '#4c302a', frame: '#b2958e', frameLo: '#8f746e', sky: '#6d6577', house: '#8b7d89', roof: '#676280', curtain: '#57634f', curtainLo: '#465140', pc: '#cdbfa8', pcLo: '#a99b85', pcHi: '#e2d6c1' };
+  const rand = rng(5);
+  let b = rect(0, 0, W, H, C.wall) + rect(0, 0, W, 60, C.wallLo, 'opacity=".5"');
+  // the window: the house across the street, two lit rooms, rain
+  const wx = 78, wy = 44, ww = 264, wh = 170;
+  b += rect(wx - 8, wy - 8, ww + 16, wh + 16, C.frame) + rect(wx - 8, wy + wh, ww + 16, 8, C.frameLo);
+  let out = rect(wx, wy, ww, wh, C.sky) + `<path d="M${wx + 10} ${wy + 70}L${wx + 80} ${wy + 6}H${wx + 220}L${wx + 264} ${wy + 60}V${wy + 70}Z" fill="${C.roof}"/>` + rect(wx + 20, wy + 70, 244, 100, C.house);
+  out += rect(wx, wy + 128, ww, 42, '#7a5763') + rect(wx, wy + 128, ww, 3, '#8c6672');
+  out += `<circle cx="${wx + 24}" cy="${wy + 104}" r="34" fill="#8a4f3c" opacity=".75"/><circle cx="${wx + 6}" cy="${wy + 128}" r="26" fill="#74402f" opacity=".75"/>`;
+  for (const [x, w] of [[70, 26], [124, 40]]) out += rect(wx + x - 8, wy + 76, w + 16, 46, '#fff6e0', 'opacity=".16" class="lit"') + rect(wx + x - 3, wy + 81, w + 6, 36, '#fff6e0', 'opacity=".35" class="lit"') + rect(wx + x, wy + 84, w, 30, '#fffaf0', 'class="lit"');
+  out += rect(wx + 196, wy + 86, 22, 26, '#6d6577') + rect(wx + 206, wy + 86, 2, 26, C.house);
+  for (let i = 0; i < 46; i++) out += rect(wx + Math.floor(rand() * ww), wy - 20 + Math.floor(rand() * wh), 1.5, 9, '#d9dcf0', `opacity="${r2(0.25 + rand() * 0.4)}" class="rain" style="animation-delay:${r2(-rand() * 1.2)}s;animation-duration:${r2(0.7 + rand() * 0.5)}s"`);
+  b += `<g clip-path="url(#win)">${out}</g>`;
+  b += rect(wx + 84, wy, 7, wh, C.frame) + rect(wx + 178, wy, 7, wh, C.frame) + rect(wx + 86, wy + 90, 3, 12, C.ink) + rect(wx + 180, wy + 90, 3, 12, C.ink);
+  // curtains and rod
+  b += rect(28, 22, 364, 5, C.desk) + rect(22, 19, 10, 11, C.desk) + rect(388, 19, 10, 11, C.desk);
+  for (const cx of [44, 336]) { b += rect(cx, 27, 42, 206, C.curtain); for (let k = 0; k < 4; k++) b += rect(cx + 6 + k * 10, 27, 4, 206, C.curtainLo); }
+  // shelf with two finished sets and their labels
+  const sy = 200;
+  b += rect(86, sy, 250, 5, '#2b1a17') + rect(96, sy + 5, 4, 10, '#2b1a17') + rect(322, sy + 5, 4, 10, '#2b1a17');
+  b += bitmap(['..r...', '.bbbb.', '.bbbb.', '..k...', '..w...', 'gyggwg'], 222, sy - 24, 4, { r: '#d7553f', b: '#3f6fa8', k: '#5a3b2a', w: '#e9e2d8', g: '#5d9a54', y: '#d9b44a' });
+  b += bitmap(['g.......', 'g..bbbb.', 'gg.wwwwr', 'ggbbbbbb', 'gkyk.kyk'], 276, sy - 20, 4, { g: '#3f7a45', b: '#7fa3cf', w: '#e9e2d8', r: '#d7553f', k: '#33312F', y: '#d9b44a' });
+  for (const lx of [220, 280]) b += rect(lx, sy + 5, 30, 11, '#efe9e0') + rect(lx + 3, sy + 8, 16, 2, C.ink) + rect(lx + 3, sy + 12, 10, 1, C.muted);
+  // desk
+  const dy = 252;
+  b += rect(0, dy, W, H - dy, C.desk) + rect(0, dy, W, 4, C.deskHi);
+  // plant, pencil cup, mug
+  b += bitmap(['..g..g...', '.gg.gg.g.', 'ggggggggg', '.ggdgggg.', 'gggggdgg.', '.gdggggg.', '..gg.gg..', '...g.g...'], 92, dy - 62, 4, { g: '#2f4a33', d: '#22382a' });
+  b += rect(104, dy - 32, 20, 32, '#59606f') + rect(104, dy - 32, 20, 3, '#6d7484') + rect(108, dy - 40, 3, 8, '#d9b44a') + rect(114, dy - 42, 3, 10, '#c8532f');
+  b += rect(176, dy - 26, 22, 26, '#d8cdbd') + rect(176, dy - 26, 22, 3, '#57634f') + rect(170, dy - 20, 6, 3, '#d8cdbd') + rect(170, dy - 20, 3, 12, '#d8cdbd') + rect(170, dy - 10, 6, 3, '#d8cdbd');
+  // the lamp and its pool of light
+  b += `<ellipse cx="262" cy="${dy + 26}" rx="92" ry="20" fill="#e2a44c" opacity=".28" class="flick"/><ellipse cx="262" cy="${dy + 26}" rx="62" ry="13" fill="#f0bb62" opacity=".4" class="flick"/><ellipse cx="262" cy="${dy + 26}" rx="34" ry="7" fill="#ffd88f" opacity=".45" class="flick"/>`;
+  b += `<ellipse cx="150" cy="${dy + 2}" rx="20" ry="5" fill="#d9d0c4"/><path d="M150 ${dy}L140 176L200 168" stroke="#d9d0c4" stroke-width="3" fill="none"/><circle cx="140" cy="176" r="4" fill="${C.ink}"/>`;
+  b += `<path d="M196 196a24 26 0 0 1 48 -8z" fill="#bfb5a8"/><path d="M196 196l48 -8l-4 8z" fill="#fff1cf" class="flick"/>`;
+  b += rect(296, dy + 14, 34, 5, '#6fa7a0') + rect(296, dy + 19, 34, 2, '#4f817b');
+  // the collection book
+  b += `<g transform="rotate(-4 60 312)">${rect(14, 290, 92, 44, '#efe9e0')}${rect(14, 290, 92, 12, K.green)}${rect(30, 293, 6, 6, '#fff')}${rect(42, 293, 6, 6, '#fff')}${rect(32, 295, 2, 2, C.ink)}${rect(44, 295, 2, 2, C.ink)}${textAt('COLLECTION', { x: 20, y: 308, s: 1, fill: C.ink })}${textAt('BOOK', { x: 20, y: 319, s: 1, fill: C.ink })}</g>`;
+  // wall: frames and a clock that ticks
+  b += rect(404, 84, 30, 38, '#cbbdb6') + rect(408, 88, 22, 30, '#efe9e0') + bitmap(['w.w.', 'gggg', 'gggg'], 411, 98, 4, { w: '#fff', g: K.green });
+  b += rect(444, 84, 30, 38, '#cbbdb6') + rect(448, 88, 22, 30, '#a9c3d6') + bitmap(['.gg.', 'gggg', '.k..', 'bbbb'], 451, 94, 4, { g: '#5d9a54', k: '#5a3b2a', b: '#3f6fa8' });
+  b += `<circle cx="510" cy="74" r="20" fill="#5a3b2a"/><circle cx="510" cy="74" r="16" fill="#efe9e0"/><path d="M510 74L518 70" stroke="${C.ink}" stroke-width="2.5"/><path d="M510 74V61" stroke="${C.ink}" stroke-width="1.5" class="tick" style="transform-origin:510px 74px"/>`;
+  // the old computer, pip asleep on it
+  const px = 398, py = 140;
+  b += rect(px, py, 126, 106, C.pc) + rect(px, py, 126, 4, C.pcHi) + rect(px, py + 98, 126, 8, C.pcLo) + rect(px + 84, py + 6, 2, 80, C.pcLo);
+  b += rect(px + 8, py + 10, 72, 70, '#17130f') + `<rect x="${px + 12}" y="${py + 14}" width="64" height="62" rx="6" fill="#050505"/>`;
+  b += `<ellipse cx="${px + 44}" cy="${py + 52}" rx="30" ry="22" fill="${K.green}" opacity=".12" class="glow"/>`;
+  b += `<g class="breathe" style="transform-origin:${px + 44}px ${py + 70}px">${bitmap(SP['pip-asleep'], px + 16, py + 32, 1.4, { g: '#5fd15c', d: '#3fae47', w: '#b9f0b0', k: '#0c1a0c', l: '#b9f0b0' })}</g>`;
+  [[58, 30, 1], [63, 22, 1.5], [69, 12, 2]].forEach(([zx, zy, s], i) => (b += `<g class="zz" style="animation-delay:${i * 0.7}s">${textAt('Z', { x: px + zx, y: py + zy, s, fill: '#e8f5e4' })}</g>`));
+  b += rect(px + 92, py + 14, 26, 5, '#8f836f') + rect(px + 94, py + 22, 6, 2, K.green) + `<circle cx="${px + 98}" cy="${py + 42}" r="5" fill="#6f6557"/><circle cx="${px + 112}" cy="${py + 42}" r="5" fill="#6f6557"/>`;
+  for (let k = 0; k < 5; k++) b += rect(px + 92, py + 56 + k * 5, 26, 2, C.pcLo);
+  b += rect(px + 106, py + 86, 12, 9, '#e0a020') + rect(px + 10, py + 86, 12, 9, '#efe9e0') + rect(px + 12, py + 90, 8, 4, K.green);
+  b += rect(px - 8, dy + 10, 112, 14, '#d8cdb8') + rect(px - 8, dy + 22, 112, 3, C.pcLo);
+  for (let k = 0; k < 13; k++) b += rect(px - 4 + k * 8, dy + 12, 6, 3, '#f1e9da') + rect(px - 4 + k * 8, dy + 17, 6, 3, k > 2 && k < 10 ? '#f1e9da' : '#8f836f');
+  b += `<ellipse cx="${px + 124}" cy="${dy + 18}" rx="12" ry="6" fill="#e2d6c1"/>`;
+  // the room picker from the game
+  const ux = 150, uy = 292;
+  b += `<rect x="${ux + 3}" y="${uy + 3}" width="236" height="34" rx="9" fill="${C.ink}"/><rect x="${ux}" y="${uy}" width="236" height="34" rx="9" fill="${C.cream}" stroke="${C.ink}" stroke-width="3"/>`;
+  for (const [ax, ch] of [[ux + 19, '<'], [ux + 217, '>']]) b += `<circle cx="${ax}" cy="${uy + 17}" r="10" fill="${K.seal}" stroke="${C.ink}" stroke-width="2.5"/>` + textAt(ch, { x: ax - 4, y: uy + 10, s: 2, fill: C.ink });
+  b += textAt('RAINY NIGHT', { x: ux + 118, y: uy + 10, s: 2, fill: C.ink, anchor: 'middle' });
+  // info card, in the game's own sticker style
+  const ix = 560, iy = 22, iw = 298, ih = 296;
+  b += `<rect x="${ix + 5}" y="${iy + 5}" width="${iw}" height="${ih}" rx="14" fill="${C.ink}"/><rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" rx="14" fill="${C.cream}" stroke="${C.ink}" stroke-width="4"/>`;
+  const tx = ix + 22;
+  b += `<rect x="${tx}" y="${iy + 18}" width="${textWidth('MAIN PROJECT', 2) + 18}" height="24" rx="6" fill="${C.ink}"/>` + textAt('MAIN PROJECT', { x: tx + 9, y: iy + 23, s: 2, fill: C.cream });
+  b += textAt('BUILD A', { x: tx, y: iy + 58, s: 3, fill: C.ink }) + textAt('BRICK SET', { x: tx, y: iy + 86, s: 5, fill: C.ink });
+  ['OPEN THE BOX.', 'TEAR THE BAGS.', 'PRESS EVERY PIECE ON.'].forEach((l, i) => (b += textAt(l, { x: tx, y: iy + 140 + i * 20, s: 2, fill: C.ink })));
+  b += textAt('A CALM ROBLOX GAME.', { x: tx, y: iy + 208, s: 2, fill: C.muted }) + textAt('NO TIMERS.', { x: tx, y: iy + 228, s: 2, fill: C.muted });
+  let cx = tx;
+  for (const [t, fill] of [['IN DEVELOPMENT', K.seal], ['ROBLOX', '#fff']]) {
+    const w = textWidth(t, 2) + 18;
+    b += `<rect x="${cx + 3}" y="${iy + 259}" width="${w}" height="24" rx="12" fill="${C.ink}"/><rect x="${cx}" y="${iy + 256}" width="${w}" height="24" rx="12" fill="${fill}" stroke="${C.ink}" stroke-width="2.5"/>` + textAt(t, { x: cx + 9, y: iy + 261, s: 2, fill: C.ink });
+    cx += w + 10;
   }
-  const css = `${p.css}
-  .pc{animation:pc 9s cubic-bezier(.16,1,.3,1) infinite both}@keyframes pc{0%{transform:translateY(-70px);opacity:0}5%{opacity:1}9%,88%{transform:translateY(0);opacity:1}94%,100%{opacity:0;transform:translateY(0)}}
+  const css = `
+  .rain{animation:rain 1s linear infinite}@keyframes rain{from{transform:translateY(-10px)}to{transform:translateY(70px)}}
+  .lit{animation:lit 7s steps(1) infinite}@keyframes lit{0%,100%{opacity:1}52%{opacity:.86}54%{opacity:1}}
+  .flick{animation:flick 6s steps(1) infinite}@keyframes flick{47%{opacity:.3}49%{opacity:.42}}
+  .tick{animation:tick 60s steps(60) infinite}@keyframes tick{to{transform:rotate(360deg)}}
+  .glow{animation:glow 4s ease-in-out infinite}@keyframes glow{50%{opacity:.22}}
+  .breathe{animation:breathe 4s ease-in-out infinite}@keyframes breathe{50%{transform:scaleY(1.04)}}
+  .zz{opacity:0;animation:zz 2.1s ease-out infinite}@keyframes zz{0%{opacity:0;transform:translate(0,4px)}30%{opacity:1}100%{opacity:0;transform:translate(4px,-8px)}}
   ${REDUCE}`;
-  return svg(W, H, b, { title: 'build a brick set, my main project. a calm roblox game: open the box, tear the bags, press every piece on. in development.', style: css });
+  return svg(W, H, b + rect(1.5, 1.5, W - 3, H - 3, 'none', `stroke="${C.ink}" stroke-width="3"`), {
+    title: 'build a brick set, my main project. a calm roblox game: open the box, tear the bags, press every piece on. in development.',
+    defs: `<clipPath id="win"><rect x="${wx}" y="${wy}" width="${ww}" height="${wh}"/></clipPath>`, style: css,
+  });
 }
 
 // ----------------------------------------------------------------- cards --
@@ -202,16 +261,17 @@ const centered = (rows, s, colors, cx = 75, cy = 118) => bitmap(rows, Math.round
 
 function cards() {
   const out = {};
-  // strut: the wordmark on a rail of hangers that sway
-  let a = '';
-  a += rect(0, 46, 150, 3, '#BBB3A7');
-  [28, 75, 122].forEach((hx, i) => {
-    const c = ['#F0532B', '#FAF8F5', '#C9A54C'][i];
-    a += `<g class="sway" style="transform-origin:${hx}px 48px;animation-delay:${-i * 0.7}s"><path d="M${hx} 48v10M${hx - 18} 76L${hx} 58L${hx + 18} 76" stroke="#BBB3A7" stroke-width="3" fill="none"/>${rect(hx - 18, 76, 36, 44 + i * 8, c)}${rect(hx - 18, 76, 36, 4, '#00000022')}</g>`;
+  // strut: real pieces from its demo closet, laid out as looks that swap like the app's suggestions
+  let a = rect(0, 0, 150, 236, '#FAF8F5');
+  const looks = [['polo_rust', 'jeans_mid', 'sneakers_white'], ['sweater_cream', 'trousers_charcoal', 'boots_chelsea'], ['jacket_denim', 'chinos_beige', 'loafers_brown']];
+  const P = SP.palettes;
+  looks.forEach(([top, bottom, shoes], i) => {
+    const g = centered(SP[bottom], 2, P[bottom], 75, 150) + centered(SP[top], 3, P[top], 75, 68) + centered(SP[shoes], 2, P[shoes], 75, 214);
+    a += `<g class="look" style="animation-delay:${i * 3}s">${g}</g>`;
   });
-  a += centered(SP.strut, 1.75, { o: '#F0532B' }, 75, 190);
+  a += `<circle cx="128" cy="22" r="9" fill="#F0532B" class="heart"/>`;
   out.strut = card({ title: 'STRUT', tag: 'IN DEVELOPMENT', accent: '#F0532B', lines: ['AN AI WARDROBE FOR', 'THE CLOSET YOU', 'ALREADY OWN.'], meta: 'ANDROID, KOTLIN, COMPOSE',
-    art: { body: a, css: '.sway{animation:sway 4s ease-in-out infinite}@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}' } });
+    art: { body: a, css: '.look{opacity:0;animation:look 9s cubic-bezier(.16,1,.3,1) infinite}@keyframes look{0%{opacity:0;transform:translateX(18px)}4%,30%{opacity:1;transform:none}34%,100%{opacity:0;transform:translateX(-18px)}}.heart{animation:heart 3s cubic-bezier(.16,1,.3,1) infinite;transform-origin:128px 22px}@keyframes heart{0%,100%{transform:scale(.8)}12%{transform:scale(1.15)}30%{transform:scale(1)}}' } });
 
   // pixelforge: the cube, capture brackets snapping, a flash
   const pf = SP.pixelforge;
